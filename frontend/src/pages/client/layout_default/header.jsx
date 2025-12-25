@@ -7,10 +7,10 @@ const Header = () => {
     return (
         <header className="header">
             <div className="header__container">
-                <div className="header__logo">
+                <a href="/" className="header__logo">
                     <span className="header__logo-star">★</span>
                     <span className="header__logo-text">LUMIÈRE</span>
-                </div>
+                </a>
 
                 <nav className="header__nav">
                     <a href="/products" className="header__nav-link">SẢN PHẨM</a>
@@ -35,9 +35,9 @@ const Header = () => {
                     </div>
 
                     <button className="header__icon-btn" aria-label="User Account">
-                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                            <path d="M10 10C12.7614 10 15 7.76142 15 5C15 2.23858 12.7614 0 10 0C7.23858 0 5 2.23858 5 5C5 7.76142 7.23858 10 10 10Z" fill="currentColor" />
-                            <path d="M10 12.5C5.58172 12.5 2 14.5817 2 17.5V20H18V17.5C18 14.5817 14.4183 12.5 10 12.5Z" fill="currentColor" />
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M10 10C12.7614 10 15 7.76142 15 5C15 2.23858 12.7614 0 10 0C7.23858 0 5 2.23858 5 5C5 7.76142 7.23858 10 10 10Z" />
+                            <path d="M10 12.5C5.58172 12.5 2 14.5817 2 17.5V20H18V17.5C18 14.5817 14.4183 12.5 10 12.5Z" />
                         </svg>
                     </button>
 

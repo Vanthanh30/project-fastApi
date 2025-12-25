@@ -1,0 +1,147 @@
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import './auth.scss';
+
+const Login = () => {
+    const [formData, setFormData] = useState({
+        email: '',
+        password: '',
+        rememberMe: false
+    });
+
+    const handleChange = (e) => {
+        const { name, value, type, checked } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: type === 'checkbox' ? checked : value
+        }));
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        console.log('Login data:', formData);
+        // Add your login logic here
+    };
+
+    const handleGoogleLogin = () => {
+        console.log('Google login');
+        // Add Google login logic here
+    };
+
+    const handleFacebookLogin = () => {
+        console.log('Facebook login');
+        // Add Facebook login logic here
+    };
+
+    return (
+        <div className="auth">
+            <div className="auth__container">
+                <div className="auth__box">
+                    {/* Left Side - Login */}
+                    <div className="auth__section">
+                        <h2 className="auth__title">Đăng Nhập</h2>
+                        <p className="auth__subtitle">
+                            Chào mừng trở lại. Vui lòng đăng nhập vào tài khoản của bạn
+                        </p>
+
+                        {/* Social Login Buttons */}
+                        <div className="auth__social">
+                            <button
+                                type="button"
+                                className="auth__social-btn auth__social-btn--google"
+                                onClick={handleGoogleLogin}
+                            >
+                                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                                    <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4" />
+                                    <path d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z" fill="#34A853" />
+                                    <path d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707 0-.593.102-1.17.282-1.709V4.958H.957C.347 6.173 0 7.548 0 9c0 1.452.348 2.827.957 4.042l3.007-2.335z" fill="#FBBC05" />
+                                    <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335" />
+                                </svg>
+                                Google
+                            </button>
+                            <button
+                                type="button"
+                                className="auth__social-btn auth__social-btn--facebook"
+                                onClick={handleFacebookLogin}
+                            >
+                                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                                    <path d="M18 9C18 4.02944 13.9706 0 9 0C4.02944 0 0 4.02944 0 9C0 13.4921 3.29117 17.2155 7.59375 17.8907V11.6016H5.30859V9H7.59375V7.01719C7.59375 4.76156 8.93742 3.51562 10.9932 3.51562C11.9776 3.51562 13.0078 3.69141 13.0078 3.69141V5.90625H11.8729C10.7549 5.90625 10.4062 6.60001 10.4062 7.3125V9H12.9023L12.5033 11.6016H10.4062V17.8907C14.7088 17.2155 18 13.4921 18 9Z" fill="#1877F2" />
+                                </svg>
+                                Facebook
+                            </button>
+                        </div>
+
+                        {/* Divider */}
+                        <div className="auth__divider">
+                            <span>Hoặc đăng nhập bằng email</span>
+                        </div>
+
+                        {/* Login Form */}
+                        <form onSubmit={handleSubmit} className="auth__form">
+                            <div className="auth__form-group">
+                                <label className="auth__label">Email/Tên đăng nhập</label>
+                                <input
+                                    type="text"
+                                    name="email"
+                                    value={formData.email}
+                                    onChange={handleChange}
+                                    className="auth__input"
+                                    placeholder="example@email.com"
+                                    required
+                                />
+                            </div>
+
+                            <div className="auth__form-group">
+                                <div className="auth__label-row">
+                                    <label className="auth__label">Mật khẩu</label>
+                                    <Link to="/forgot-password" className="auth__link auth__link--forgot">
+                                        Quên mật khẩu?
+                                    </Link>
+                                </div>
+                                <input
+                                    type="password"
+                                    name="password"
+                                    value={formData.password}
+                                    onChange={handleChange}
+                                    className="auth__input"
+                                    placeholder="••••••••"
+                                    required
+                                />
+                            </div>
+
+                            <div className="auth__form-group auth__form-group--checkbox">
+                                <label className="auth__checkbox">
+                                    <input
+                                        type="checkbox"
+                                        name="rememberMe"
+                                        checked={formData.rememberMe}
+                                        onChange={handleChange}
+                                    />
+                                    <span className="auth__checkbox-custom"></span>
+                                    <span className="auth__checkbox-label">Ghi nhớ đăng nhập</span>
+                                </label>
+                            </div>
+
+                            <button type="submit" className="auth__submit">
+                                Đăng Nhập
+                            </button>
+                        </form>
+                    </div>
+
+                    {/* Right Side - Register Prompt */}
+                    <div className="auth__section auth__section--right">
+                        <h2 className="auth__title">Đăng Ký</h2>
+                        <p className="auth__subtitle">
+                            Tạo tài khoản mới để trải nghiệm tích điểm và nhận ưu đãi độc quyền
+                        </p>
+                        <Link to="/register" className="auth__switch-btn">
+                            Đăng Ký
+                        </Link>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default Login;

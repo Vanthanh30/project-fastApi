@@ -6,29 +6,33 @@ const Home = () => {
     const featuredProducts = [
         {
             id: 1,
-            name: 'Kem nền dưỡng ẩm SKIN 24H',
-            price: '1,590,000',
+            name: 'Kem Nền Ambient Soft Glow',
+            category: 'Kem nền dưỡng da',
+            price: '1,650,000',
             tag: 'MỚI NHẤT',
             image: '/products/foundation.jpg'
         },
         {
             id: 2,
-            name: 'Son lì Velvet VENUS 01',
-            price: '690,000',
+            name: 'Son Thỏi Lì Velvet Matte',
+            category: 'Son thỏi cao cấp',
+            price: '950,000',
             tag: null,
             image: '/products/lipstick.jpg'
         },
         {
             id: 3,
-            name: 'Mascara dưỡng mi LASHKA LONG',
-            price: '590,000',
+            name: 'Mascara Caution Extreme Lash',
+            category: 'Dưỡng mi dài',
+            price: '730,000',
             tag: null,
             image: '/products/mascara.jpg'
         },
         {
             id: 4,
-            name: 'Phấn má hồng BLUSH LIGHT PRO',
-            price: '790,000',
+            name: 'Phấn Má Hồng Ambient',
+            category: 'Phấn má phun sương',
+            price: '1,125,000',
             tag: null,
             image: '/products/blush.jpg'
         }
@@ -37,24 +41,24 @@ const Home = () => {
     const seasonalProducts = [
         {
             id: 1,
-            category: 'MẮT',
-            title: 'Làm Nổi Bật Đôi Mắt',
-            description: 'Bộ sưu tập makeup mắt hoàn hảo',
-            image: '/seasonal/eyes.jpg'
+            category: 'MẶT',
+            title: 'Làm Nền',
+            description: 'Lớp nền hoàn hảo cho làn da rạng rỡ',
+            image: '/seasonal/face.jpg'
         },
         {
             id: 2,
             category: 'MÔI',
-            title: 'Sắc Môi Quyến Rũ',
-            description: 'Bảng màu son đa dạng và bền màu',
+            title: 'Màu Hồng',
+            description: 'Sắc màu quyến rũ bền lâu',
             image: '/seasonal/lips.jpg'
         },
         {
             id: 3,
-            category: 'MẶT',
-            title: 'Làn Da Hoàn Hảo',
-            description: 'Lớp nền mịn màng tự nhiên',
-            image: '/seasonal/face.jpg'
+            category: 'MẮT',
+            title: 'Màu Nâu',
+            description: 'Làm nổi bật đôi mắt của bạn',
+            image: '/seasonal/eyes.jpg'
         }
     ];
 
@@ -63,19 +67,14 @@ const Home = () => {
             <div className="home">
                 {/* Hero Section */}
                 <section className="hero">
-                    <div className="hero__overlay"></div>
+                    <div className="hero__image-bg"></div>
                     <div className="hero__content">
-                        <p className="hero__subtitle">BỘ SƯU TẬP MỚI</p>
+                        <p className="hero__label">BỘ SƯU TẬP MỚI</p>
                         <h1 className="hero__title">CHẠM NHẸ<br />TỎA NHUNG</h1>
                         <p className="hero__description">
-                            Khám phá vẻ đẹp tự nhiên với bộ sưu tập mới nhất
+                            Trải nghiệm chạm mịn như nhung, từ má hồng, môi hồng đến trang điểm hoàn thiện. Tiếp tục câu chuyện trang điểm của bạn.
                         </p>
-                        <button className="hero__cta">KHÁM PHÁ NGAY</button>
-                    </div>
-                    <div className="hero__image">
-                        <div className="hero__image-placeholder">
-                            {/* Hero image with makeup model */}
-                        </div>
+                        <button className="hero__cta">MUA BỘ SƯU TẬP</button>
                     </div>
                 </section>
 
@@ -83,8 +82,8 @@ const Home = () => {
                 <section className="featured">
                     <div className="container">
                         <div className="featured__header">
-                            <h2 className="featured__title">TÌNH HỌA BIỂU TƯỢNG</h2>
-                            <p className="featured__subtitle">Những sản phẩm được yêu thích nhất</p>
+                            <h2 className="featured__title">TÌNH HOẠ BIỂU TƯỢNG</h2>
+                            <p className="featured__subtitle">Những sản phẩm được yêu thích nhất, luôn chạy hàng đầu trên các bảng xếp hạng</p>
                             <a href="/products" className="featured__link">XEM TẤT CẢ →</a>
                         </div>
 
@@ -99,8 +98,8 @@ const Home = () => {
                                     </div>
                                     <div className="product-card__info">
                                         <h3 className="product-card__name">{product.name}</h3>
+                                        <p className="product-card__category">{product.category}</p>
                                         <p className="product-card__price">{product.price}₫</p>
-                                        <button className="product-card__btn">THÊM VÀO GIỎ</button>
                                     </div>
                                 </div>
                             ))}
@@ -116,14 +115,12 @@ const Home = () => {
                                 <div className="premium__image-placeholder"></div>
                             </div>
                             <div className="premium__text">
-                                <span className="premium__label">LUMIÈRE PREMIUM</span>
-                                <h2 className="premium__title">Sang Trọng Thuần Khiết<br />Đột Phá Khoa Học</h2>
+                                <span className="premium__label">THIẾT LÝ ĐỔA CHÚNG TÔI</span>
+                                <h2 className="premium__title">Sang Trọng Thuần Khiết.<br />Đột Phá Khoa Học.</h2>
                                 <p className="premium__description">
-                                    Công nghệ tiên tiến kết hợp với thành phần thiên nhiên cao cấp,
-                                    mang đến làn da hoàn hảo và rạng rỡ. Trải nghiệm sự khác biệt
-                                    với dòng sản phẩm cao cấp của LUMIÈRE.
+                                    LUMIÈRE ra đời từ niềm khao khát tạo nên một thương hiệu mỹ phẩm cao cấp không chỉ mang lại vẻ đẹp ngoại hình mà còn nuôi dưỡng làn da từ sâu bên trong. Chúng tôi tin rằng vẻ đẹp thực sự đến từ sự tự tin và sức khỏe làn da được chăm sóc tận tâm.
                                 </p>
-                                <button className="premium__cta">KHU CẤU PHẨM CÔNG NGHỆ</button>
+                                <button className="premium__cta">ĐỌC CÂU CHUYỆN CỦA CHÚNG TÔI</button>
                             </div>
                         </div>
                     </div>
@@ -133,9 +130,9 @@ const Home = () => {
                 <section className="seasonal">
                     <div className="container">
                         <div className="seasonal__header">
-                            <h2 className="seasonal__title">MÙA SẮM THEO DẠM NƯớC</h2>
+                            <h2 className="seasonal__title">MUA SẮM THEO DANH MỤC</h2>
                             <p className="seasonal__subtitle">
-                                Khám phá những xu hướng makeup mới nhất và tạo nên phong cách riêng của bạn
+                                Khám phá các sản phẩm trang điểm nguyên tắc. Sản phẩm của chúng tôi được nghiên cứu kỹ lưỡng và kiểm định nghiêm ngặt để đem lại trải nghiệm hoàn hảo.
                             </p>
                         </div>
 
@@ -145,40 +142,14 @@ const Home = () => {
                                     <div className="seasonal-card__image">
                                         <div className="seasonal-card__image-placeholder"></div>
                                         <div className="seasonal-card__overlay">
-                                            <span className="seasonal-card__category">{item.category}</span>
+                                            <div className="seasonal-card__text">
+                                                <h3 className="seasonal-card__category">{item.category}</h3>
+                                                <p className="seasonal-card__title">{item.title}</p>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div className="seasonal-card__content">
-                                        <h3 className="seasonal-card__title">{item.title}</h3>
-                                        <p className="seasonal-card__description">{item.description}</p>
-                                        <button className="seasonal-card__btn">KHÁM PHÁ</button>
                                     </div>
                                 </div>
                             ))}
-                        </div>
-                    </div>
-                </section>
-
-                {/* Newsletter Section */}
-                <section className="newsletter">
-                    <div className="container">
-                        <div className="newsletter__content">
-                            <h2 className="newsletter__title">ĐĂNG KÝ NHẬN ƯU ĐÃI</h2>
-                            <p className="newsletter__description">
-                                Nhận ngay mã giảm giá 15% cho đơn hàng đầu tiên và cập nhật
-                                những sản phẩm mới nhất từ LUMIÈRE
-                            </p>
-                            <form className="newsletter__form">
-                                <input
-                                    type="email"
-                                    placeholder="Địa chỉ email của bạn"
-                                    className="newsletter__input"
-                                    required
-                                />
-                                <button type="submit" className="newsletter__submit">
-                                    ĐĂNG KÝ NGAY
-                                </button>
-                            </form>
                         </div>
                     </div>
                 </section>
