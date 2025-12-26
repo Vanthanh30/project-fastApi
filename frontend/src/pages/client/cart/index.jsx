@@ -130,8 +130,6 @@ const Cart = () => {
                                 </>
                             )}
                         </div>
-
-                        {/* Order Summary */}
                         {cartItems.length > 0 && (
                             <div className="cart__summary">
                                 <h2 className="cart__summary-title">TÓM TẮT ĐỚN HÀNG</h2>
@@ -186,8 +184,6 @@ const Cart = () => {
                             </div>
                         )}
                     </div>
-
-                    {/* Recommended Products */}
                     {cartItems.length > 0 && (
                         <section className="cart__recommended">
                             <h2 className="cart__recommended-title">CÓ THỂ BẠN SẼ THÍCH</h2>
