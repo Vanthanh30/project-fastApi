@@ -20,31 +20,31 @@ const Login = () => {
     const handleSubmit = (e) => {
         e.preventDefault();
         console.log('Login data:', formData);
-        // Add your login logic here
+
     };
 
     const handleGoogleLogin = () => {
         console.log('Google login');
-        // Add Google login logic here
+
     };
 
     const handleFacebookLogin = () => {
         console.log('Facebook login');
-        // Add Facebook login logic here
+
     };
 
     return (
         <div className="auth">
             <div className="auth__container">
                 <div className="auth__box">
-                    {/* Left Side - Login */}
+
                     <div className="auth__section">
                         <h2 className="auth__title">Đăng Nhập</h2>
                         <p className="auth__subtitle">
                             Chào mừng trở lại. Vui lòng đăng nhập vào tài khoản của bạn
                         </p>
 
-                        {/* Social Login Buttons */}
+
                         <div className="auth__social">
                             <button
                                 type="button"
@@ -71,12 +71,12 @@ const Login = () => {
                             </button>
                         </div>
 
-                        {/* Divider */}
+
                         <div className="auth__divider">
                             <span>Hoặc đăng nhập bằng email</span>
                         </div>
 
-                        {/* Login Form */}
+
                         <form onSubmit={handleSubmit} className="auth__form">
                             <div className="auth__form-group">
                                 <label className="auth__label">Email/Tên đăng nhập</label>
@@ -137,7 +137,7 @@ const Login = () => {
                         </form>
                     </div>
 
-                    {/* Right Side - Brand Image */}
+
                     <div className="auth__section auth__section--image" data-page="login">
                         <Link to="/" className="auth__brand-logo">
                             <span className="auth__brand-star">★</span>

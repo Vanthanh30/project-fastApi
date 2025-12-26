@@ -33,14 +33,14 @@ const Register = () => {
         }
 
         console.log('Register data:', formData);
-        // Add your registration logic here
+
     };
 
     return (
         <div className="auth">
             <div className="auth__container">
                 <div className="auth__box">
-                    {/* Left Side - Brand Image */}
+
                     <div className="auth__section auth__section--image" data-page="register">
                         <Link to="/" className="auth__brand-logo">
                             <span className="auth__brand-star">★</span>
@@ -48,14 +48,14 @@ const Register = () => {
                         </Link>
                     </div>
 
-                    {/* Right Side - Register */}
+
                     <div className="auth__section">
                         <h2 className="auth__title">Đăng Ký</h2>
                         <p className="auth__subtitle">
                             Tạo tài khoản mới để trải nghiệm tích điểm và nhận ưu đãi độc quyền
                         </p>
 
-                        {/* Register Form */}
+
                         <form onSubmit={handleSubmit} className="auth__form">
                             <div className="auth__form-group">
                                 <label className="auth__label">Họ và tên</label>

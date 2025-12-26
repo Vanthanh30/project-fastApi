@@ -37,7 +37,7 @@ const Profile = () => {
         { id: 'wishlist', label: 'Sản phẩm yêu thích' }
     ];
 
-    // Mock data for orders
+
     const orders = [
         {
             id: 'ORD-001',
@@ -74,7 +74,7 @@ const Profile = () => {
         }
     ];
 
-    // Mock data for wishlist
+
     const wishlistItems = [
         {
             id: 1,
@@ -131,7 +131,7 @@ const Profile = () => {
         <LayoutDefault>
             <div className="profile">
                 <div className="profile__container">
-                    {/* Sidebar Menu */}
+
                     <aside className="profile__sidebar">
                         <div className="profile__user">
                             <div className="profile__avatar">
@@ -162,7 +162,7 @@ const Profile = () => {
                         </nav>
                     </aside>
 
-                    {/* Main Content */}
+
                     <main className="profile__content">
                         {activeTab === 'info' && (
                             <div className="profile__section">
@@ -276,7 +276,7 @@ const Profile = () => {
                                     </form>
                                 </div>
 
-                                {/* Email Notification Settings */}
+
                                 <div className="profile__card profile__notification">
                                     <h2>Tùy chọn liên lạc</h2>
 

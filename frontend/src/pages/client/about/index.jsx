@@ -42,7 +42,6 @@ const About = () => {
         <LayoutDefault>
             <div className="about">
 
-                {/* HERO */}
                 <section ref={heroRef} className="about-hero reveal">
                     <div className="about-hero__bg" />
                     <div className="about-hero__overlay" />
@@ -64,7 +63,6 @@ const About = () => {
                     </div>
                 </section>
 
-                {/* STORY */}
                 <section ref={storyRef} className="about-story reveal">
                     <div className="container">
                         <div className="about-story__content">
@@ -89,7 +87,6 @@ const About = () => {
                     </div>
                 </section>
 
-                {/* VALUES */}
                 <section ref={valuesRef} className="about-values reveal">
                     <div className="container">
                         <h2 className="about-values__title">
@@ -125,7 +122,6 @@ const About = () => {
                     </div>
                 </section>
 
-                {/* GALLERY */}
                 <section ref={galleryRef} className="about-gallery reveal">
                     <div className="about-gallery__grid">
 
@@ -152,7 +148,6 @@ const About = () => {
                     </div>
                 </section>
 
-                {/* NEWSLETTER */}
                 <section ref={newsletterRef} className="about-newsletter reveal">
                     <div className="container">
                         <h2>Luôn toả sáng</h2>

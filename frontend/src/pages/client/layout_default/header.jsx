@@ -5,15 +5,13 @@ import "./layout_default.scss";
 const Header = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // Check if user is logged in
-  const [user, setUser] = useState(null); // Store user data
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [user, setUser] = useState(null);
   const userMenuRef = useRef(null);
   const navigate = useNavigate();
 
-  // Check authentication status on component mount
   useEffect(() => {
-    // TODO: Replace with actual authentication check
-    // Example: Check localStorage, cookies, or call API
+
     const checkAuth = () => {
       const userData = localStorage.getItem('user');
       if (userData) {
@@ -24,7 +22,7 @@ const Header = () => {
     checkAuth();
   }, []);
 
-  // Close dropdown when clicking outside
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
@@ -62,7 +60,7 @@ const Header = () => {
   };
 
   const handleLogout = () => {
-    // TODO: Implement actual logout logic
+
     localStorage.removeItem('user');
     setIsLoggedIn(false);
     setUser(null);
@@ -126,7 +124,6 @@ const Header = () => {
             </svg>
           </div>
 
-          {/* User Menu Dropdown */}
           <div className="header__user-menu" ref={userMenuRef}>
             <button
               className="header__icon-btn"
@@ -142,7 +139,6 @@ const Header = () => {
             {isUserMenuOpen && (
               <div className="header__dropdown">
                 {!isLoggedIn ? (
-                  // Not logged in - Show Login & Register
                   <>
                     <button
                       className="header__dropdown-item"
@@ -169,7 +165,6 @@ const Header = () => {
                     </button>
                   </>
                 ) : (
-                  // Logged in - Show Profile & Logout
                   <>
                     <div className="header__dropdown-user">
                       <div className="header__dropdown-avatar">

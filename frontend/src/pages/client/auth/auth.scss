@@ -56,7 +56,6 @@
                 display: none;
             }
 
-            // Different background for login page (right side)
             &[data-page="login"] {
                 background-image: url('https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=800&q=80');
 
@@ -66,7 +65,6 @@
                 }
             }
 
-            // Different background for register page (left side)
             &[data-page="register"] {
                 background-image: url('https://images.unsplash.com/photo-1571875257727-256c39da42af?w=800&q=80');
 
@@ -76,7 +74,6 @@
                 }
             }
 
-            // Overlay for better logo visibility
             &::before {
                 content: '';
                 position: absolute;
@@ -106,7 +103,6 @@
         line-height: 1.6;
     }
 
-    // Brand Logo (on image section)
     &__brand-logo {
         display: flex;
         align-items: center;
@@ -143,7 +139,7 @@
         filter: drop-shadow(0 2px 4px rgba(255, 255, 255, 0.8));
     }
 
-    // Form Footer
+
     &__footer {
         text-align: center;
         margin-top: 1.5rem;
@@ -160,7 +156,6 @@
         }
     }
 
-    // Social Buttons
     &__social {
         display: flex;
         gap: 0.75rem;
@@ -195,7 +190,7 @@
         }
     }
 
-    // Divider
+
     &__divider {
         position: relative;
         text-align: center;
@@ -228,7 +223,7 @@
         }
     }
 
-    // Form
+
     &__form {
         display: flex;
         flex-direction: column;
@@ -277,7 +272,7 @@
         }
     }
 
-    // Checkbox
+
     &__checkbox {
         display: flex;
         align-items: flex-start;
@@ -337,7 +332,6 @@
         line-height: 1.5;
     }
 
-    // Links
     &__link {
         color: #dc2626;
         text-decoration: none;
@@ -355,7 +349,6 @@
         }
     }
 
-    // Submit Button
     &__submit {
         padding: 1rem;
         background: #dc2626;
@@ -401,7 +394,6 @@
     }
 }
 
-// Animations
 @keyframes sparkle {
 
     0%,
@@ -478,7 +470,6 @@
     }
 }
 
-// Mobile responsive
 @media (max-width: 768px) {
     .auth {
         padding: 1rem;
@@ -501,9 +492,7 @@
     }
 }
 
-// ========================================
 // FORGOT PASSWORD PAGE STYLES
-// ========================================
 
 .forgot-password {
     background: white;
@@ -778,7 +767,6 @@
     max-width: 480px;
 }
 
-// Additional animations for forgot password
 @keyframes fadeIn {
     from {
         opacity: 0;
@@ -848,7 +836,6 @@
         }
     }
 
-    // Sidebar
     &__sidebar {
         background: white;
         border-radius: 12px;
@@ -963,7 +950,6 @@
         flex: 1;
     }
 
-    // Main Content
     &__content {
         background: white;
         border-radius: 12px;
@@ -1011,7 +997,6 @@
         font-size: 15px;
     }
 
-    // Card
     &__card {
         margin-bottom: 25px;
         padding: 30px;
@@ -1061,7 +1046,6 @@
         }
     }
 
-    // Form
     &__form {
         display: flex;
         flex-direction: column;
@@ -1141,7 +1125,6 @@
         }
     }
 
-    // Notification Card
     &__notification {
         background: white;
         border: 1px solid #e8e8e8;
@@ -1193,7 +1176,6 @@
         }
     }
 
-    // Toggle Switch
     &__toggle {
         position: relative;
         display: inline-block;
@@ -1240,7 +1222,6 @@
         }
     }
 
-    // Orders Section
     &__orders {
         display: flex;
         flex-direction: column;
@@ -1449,7 +1430,6 @@
         }
     }
 
-    // Wishlist Section
     &__wishlist {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
