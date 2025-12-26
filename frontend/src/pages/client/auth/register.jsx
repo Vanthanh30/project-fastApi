@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { LuEye, LuEyeOff } from "react-icons/lu";
 import './auth.scss';
 
 const Register = () => {
@@ -35,7 +36,8 @@ const Register = () => {
         console.log('Register data:', formData);
 
     };
-
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     return (
         <div className="auth">
             <div className="auth__container">
@@ -85,30 +87,64 @@ const Register = () => {
 
                             <div className="auth__form-group">
                                 <label className="auth__label">Mật khẩu</label>
-                                <input
-                                    type="password"
-                                    name="password"
-                                    value={formData.password}
-                                    onChange={handleChange}
-                                    className="auth__input"
-                                    placeholder="••••••••"
-                                    required
-                                    minLength="6"
-                                />
+
+                                <div className="auth__password-wrapper">
+                                    <input
+                                        type={showPassword ? "text" : "password"}
+                                        name="password"
+                                        value={formData.password}
+                                        onChange={handleChange}
+                                        className="auth__input auth__input--password"
+                                        placeholder="••••••••"
+                                        required
+                                        minLength="6"
+                                    />
+
+                                    {showPassword ? (
+                                        <LuEye
+                                            className="auth__eye-icon"
+                                            onMouseDown={(e) => e.preventDefault()}
+                                            onClick={() => setShowPassword(false)}
+                                        />
+                                    ) : (
+                                        <LuEyeOff
+                                            className="auth__eye-icon"
+                                            onMouseDown={(e) => e.preventDefault()}
+                                            onClick={() => setShowPassword(true)}
+                                        />
+                                    )}
+                                </div>
                             </div>
 
                             <div className="auth__form-group">
                                 <label className="auth__label">Xác nhận mật khẩu</label>
-                                <input
-                                    type="password"
-                                    name="confirmPassword"
-                                    value={formData.confirmPassword}
-                                    onChange={handleChange}
-                                    className="auth__input"
-                                    placeholder="••••••••"
-                                    required
-                                    minLength="6"
-                                />
+
+                                <div className="auth__password-wrapper">
+                                    <input
+                                        type={showConfirmPassword ? "text" : "password"}
+                                        name="confirmPassword"
+                                        value={formData.confirmPassword}
+                                        onChange={handleChange}
+                                        className="auth__input auth__input--password"
+                                        placeholder="••••••••"
+                                        required
+                                        minLength="6"
+                                    />
+
+                                    {showConfirmPassword ? (
+                                        <LuEye
+                                            className="auth__eye-icon"
+                                            onMouseDown={(e) => e.preventDefault()}
+                                            onClick={() => setShowConfirmPassword(false)}
+                                        />
+                                    ) : (
+                                        <LuEyeOff
+                                            className="auth__eye-icon"
+                                            onMouseDown={(e) => e.preventDefault()}
+                                            onClick={() => setShowConfirmPassword(true)}
+                                        />
+                                    )}
+                                </div>
                             </div>
 
                             <div className="auth__form-group auth__form-group--checkbox">

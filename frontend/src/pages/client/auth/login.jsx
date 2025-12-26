@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { LuEye, LuEyeOff } from "react-icons/lu";
 import './auth.scss';
 
 const Login = () => {
@@ -32,7 +33,7 @@ const Login = () => {
         console.log('Facebook login');
 
     };
-
+    const [showPassword, setShowPassword] = useState(false);
     return (
         <div className="auth">
             <div className="auth__container">
@@ -98,15 +99,31 @@ const Login = () => {
                                         Quên mật khẩu?
                                     </Link>
                                 </div>
-                                <input
-                                    type="password"
-                                    name="password"
-                                    value={formData.password}
-                                    onChange={handleChange}
-                                    className="auth__input"
-                                    placeholder="••••••••"
-                                    required
-                                />
+                                <div className="auth__password-wrapper">
+                                    <input
+                                        type={showPassword ? "text" : "password"}
+                                        name="password"
+                                        value={formData.password}
+                                        onChange={handleChange}
+                                        className="auth__input auth__input--password"
+                                        placeholder="••••••••"
+                                        required
+                                    />
+
+                                    {showPassword ? (
+                                        <LuEye
+                                            className="auth__eye-icon"
+                                            onMouseDown={(e) => e.preventDefault()}
+                                            onClick={() => setShowPassword(false)}
+                                        />
+                                    ) : (
+                                        <LuEyeOff
+                                            className="auth__eye-icon"
+                                            onMouseDown={(e) => e.preventDefault()}
+                                            onClick={() => setShowPassword(true)}
+                                        />
+                                    )}
+                                </div>
                             </div>
 
                             <div className="auth__form-group auth__form-group--checkbox">
