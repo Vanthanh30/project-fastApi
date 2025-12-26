@@ -290,34 +290,6 @@
         font-weight: 500;
     }
 
-    // Colors
-    &__colors {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-    }
-
-    &__color {
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        border: 2px solid transparent;
-        cursor: pointer;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        position: relative;
-
-        &:hover {
-            transform: scale(1.15) rotate(5deg);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-        }
-
-        &.active {
-            border-color: #1a1a1a;
-            box-shadow: 0 0 0 2px white, 0 0 0 4px #1a1a1a;
-            animation: pulse 0.5s ease;
-        }
-    }
-
     // Main Content
     &__main {
         background: white;
@@ -574,7 +546,7 @@
         display: flex;
         align-items: center;
         gap: 8px;
-        margin-bottom: 12px;
+        margin-bottom: 0;
     }
 
     &__price-current {
@@ -587,30 +559,6 @@
         font-size: 14px;
         color: #999;
         text-decoration: line-through;
-    }
-
-    &__product-colors {
-        display: flex;
-        gap: 6px;
-    }
-
-    &__product-color {
-        width: 20px;
-        height: 20px;
-        border-radius: 50%;
-        border: 1.5px solid #e0e0e0;
-        cursor: pointer;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-
-        &:hover {
-            transform: scale(1.2) translateY(-2px);
-            border-color: #1a1a1a;
-            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
-        }
-
-        &:active {
-            transform: scale(1.1) translateY(-1px);
-        }
     }
 
     // Pagination

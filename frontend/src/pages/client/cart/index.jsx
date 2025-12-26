@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { ShieldCheck } from 'lucide-react';
 import LayoutDefault from '../layout_default/layout_default';
 import './cart.scss';
 
@@ -43,6 +44,13 @@ const Cart = () => {
             price: '1,100,000₫',
             image: '/products/blush.jpg'
         }
+    ];
+
+    const paymentMethods = [
+        { name: 'Visa', url: 'https://www.visa.com.vn/', image: '../src/assets/payment1.jpg' },
+        { name: 'Mastercard', url: 'https://www.mastercard.com.vn/', image: '../src/assets/payment2.jpg' },
+        { name: 'PayPal', url: 'https://www.paypal.com/', image: '../src/assets/payment3.jpg' },
+        { name: 'Momo', url: 'https://momo.vn/', image: '../src/assets/payment4.jpg' }
     ];
 
     const updateQuantity = (id, delta) => {
@@ -172,14 +180,23 @@ const Cart = () => {
                                 </button>
 
                                 <div className="cart__payment-methods">
-                                    <img src="/icons/payment-1.svg" alt="Payment" />
-                                    <img src="/icons/payment-2.svg" alt="Payment" />
-                                    <img src="/icons/payment-3.svg" alt="Payment" />
-                                    <img src="/icons/payment-4.svg" alt="Payment" />
+                                    {paymentMethods.map((method, index) => (
+                                        <a
+                                            key={index}
+                                            href={method.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="cart__payment-link"
+                                            title={method.name}
+                                        >
+                                            <img src={method.image} alt={method.name} />
+                                        </a>
+                                    ))}
                                 </div>
 
                                 <p className="cart__security">
-                                    🔒 Thanh toán bảo mật 100%
+                                    <ShieldCheck size={16} strokeWidth={2} />
+                                    <span>Thanh toán bảo mật 100%</span>
                                 </p>
                             </div>
                         )}

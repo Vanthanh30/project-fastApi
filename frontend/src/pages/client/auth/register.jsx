@@ -40,14 +40,11 @@ const Register = () => {
         <div className="auth">
             <div className="auth__container">
                 <div className="auth__box">
-                    {/* Left Side - Login Prompt */}
-                    <div className="auth__section auth__section--left">
-                        <h2 className="auth__title">Đăng Nhập</h2>
-                        <p className="auth__subtitle">
-                            Chào mừng trở lại. Vui lòng đăng nhập vào tài khoản của bạn
-                        </p>
-                        <Link to="/login" className="auth__switch-btn auth__switch-btn--outline">
-                            Đăng Nhập
+                    {/* Left Side - Brand Image */}
+                    <div className="auth__section auth__section--image" data-page="register">
+                        <Link to="/" className="auth__brand-logo">
+                            <span className="auth__brand-star">★</span>
+                            <span className="auth__brand-text">LUMIÈRE</span>
                         </Link>
                     </div>
 
@@ -136,6 +133,15 @@ const Register = () => {
                             <button type="submit" className="auth__submit">
                                 Đăng Ký
                             </button>
+
+                            <div className="auth__footer">
+                                <p className="auth__footer-text">
+                                    Đã có tài khoản?{' '}
+                                    <Link to="/login" className="auth__link">
+                                        Đăng nhập ngay
+                                    </Link>
+                                </p>
+                            </div>
                         </form>
                     </div>
                 </div>
