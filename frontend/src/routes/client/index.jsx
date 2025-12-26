@@ -5,6 +5,8 @@ import Forgot from "../../pages/client/auth/forgotpassword";
 import Profile from "../../pages/client/auth/profile";
 import ProductDetail from "../../pages/client/product_detail";
 import Cart from "../../pages/client/cart";
+import Order from "../../pages/client/order";
+import Payment from "../../pages/client/payment";
 import Contact from "../../pages/client/contact";
 import Collection from "../../pages/client/collection";
 import About from "../../pages/client/about";
@@ -36,6 +38,14 @@ export const clientRoute = [
   {
     path: "/cart",
     element: <Cart />,
+  },
+  {
+    path: "/order",
+    element: <Order />,
+  },
+  {
+    path: "/payment",
+    element: <Payment />,
   },
   {
     path: "/contact",

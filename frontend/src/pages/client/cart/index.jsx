@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ShieldCheck } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import LayoutDefault from '../layout_default/layout_default';
 import './cart.scss';
 
@@ -48,9 +49,9 @@ const Cart = () => {
 
     const paymentMethods = [
         { name: 'Visa', url: 'https://www.visa.com.vn/', image: '../src/assets/payment1.jpg' },
-        { name: 'Mastercard', url: 'https://www.mastercard.com.vn/', image: '../src/assets/payment2.jpg' },
-        { name: 'PayPal', url: 'https://www.paypal.com/', image: '../src/assets/payment3.jpg' },
-        { name: 'Momo', url: 'https://momo.vn/', image: '../src/assets/payment4.jpg' }
+        { name: 'Amex', url: 'https://www.mastercard.com.vn/', image: '../src/assets/payment3.jpg' },
+        { name: 'Napas', url: 'https://www.paypal.com/', image: '../src/assets/payment4.jpg' },
+        { name: 'Momo', url: 'https://momo.vn/', image: '../src/assets/payment2.jpg' }
     ];
 
     const updateQuantity = (id, delta) => {
@@ -70,10 +71,10 @@ const Cart = () => {
     const formatPrice = (price) => {
         return price.toLocaleString('vi-VN') + '₫';
     };
-
+    const navigate = useNavigate();
     const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const shipping = 0; // Miễn phí
-    const tax = 0; // Đã bao gồm
+    const shipping = 0;
+    const tax = 0;
     const total = subtotal + shipping + tax;
 
     return (
@@ -175,7 +176,10 @@ const Cart = () => {
                                     (Khuyến mại sẽ được cập nhật sau khi thanh toán)
                                 </p>
 
-                                <button className="cart__checkout-btn">
+                                <button
+                                    onClick={() => navigate('/payment')}
+                                    className="cart__checkout-btn"
+                                >
                                     TIẾN HÀNH THANH TOÁN →
                                 </button>
 
