@@ -94,7 +94,7 @@ const Login = () => {
                             <div className="auth__form-group">
                                 <div className="auth__label-row">
                                     <label className="auth__label">Mật khẩu</label>
-                                    <Link to="/forgot-password" className="auth__link auth__link--forgot">
+                                    <Link to="/forgotpassword" className="auth__link auth__link--forgot">
                                         Quên mật khẩu?
                                     </Link>
                                 </div>
@@ -125,17 +125,23 @@ const Login = () => {
                             <button type="submit" className="auth__submit">
                                 Đăng Nhập
                             </button>
+
+                            <div className="auth__footer">
+                                <p className="auth__footer-text">
+                                    Chưa có tài khoản?{' '}
+                                    <Link to="/register" className="auth__link">
+                                        Đăng ký ngay
+                                    </Link>
+                                </p>
+                            </div>
                         </form>
                     </div>
 
-                    {/* Right Side - Register Prompt */}
-                    <div className="auth__section auth__section--right">
-                        <h2 className="auth__title">Đăng Ký</h2>
-                        <p className="auth__subtitle">
-                            Tạo tài khoản mới để trải nghiệm tích điểm và nhận ưu đãi độc quyền
-                        </p>
-                        <Link to="/register" className="auth__switch-btn">
-                            Đăng Ký
+                    {/* Right Side - Brand Image */}
+                    <div className="auth__section auth__section--image" data-page="login">
+                        <Link to="/" className="auth__brand-logo">
+                            <span className="auth__brand-star">★</span>
+                            <span className="auth__brand-text">LUMIÈRE</span>
                         </Link>
                     </div>
                 </div>

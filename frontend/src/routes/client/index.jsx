@@ -1,6 +1,7 @@
 import Home from "../../pages/client/home";
 import Login from "../../pages/client/auth/login";
 import Register from "../../pages/client/auth/register";
+import Forgot from "../../pages/client/auth/forgotpassword";
 import Profile from "../../pages/client/auth/profile";
 import ProductDetail from "../../pages/client/product_detail";
 import Cart from "../../pages/client/cart";
@@ -19,6 +20,10 @@ export const clientRoute = [
   {
     path: "/register",
     element: <Register />,
+  },
+  {
+    path: "/forgotpassword",
+    element: <Forgot />,
   },
   {
     path: "/profile",

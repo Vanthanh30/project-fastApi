@@ -6,14 +6,12 @@ import './collection.scss';
 const Collection = () => {
     const [selectedCategory, setSelectedCategory] = useState('all');
     const [priceRange, setPriceRange] = useState([0, 5000000]);
-    const [selectedColors, setSelectedColors] = useState([]);
-    const [selectedBrands, setSelectedBrands] = useState([]);
+    const [selectedProductTypes, setSelectedProductTypes] = useState([]);
     const [sortBy, setSortBy] = useState('featured');
     const [expandedSections, setExpandedSections] = useState({
         category: true,
         price: true,
-        color: true,
-        brand: true
+        productType: true
     });
 
     const categories = [
@@ -23,21 +21,13 @@ const Collection = () => {
         { id: 'lipstick', name: 'Son môi', count: 8 }
     ];
 
-    const colors = [
-        { id: 'red', name: 'Đỏ', hex: '#DC2626' },
-        { id: 'pink', name: 'Hồng', hex: '#EC4899' },
-        { id: 'nude', name: 'Nude', hex: '#D4A373' },
-        { id: 'brown', name: 'Nâu', hex: '#92400E' },
-        { id: 'orange', name: 'Cam', hex: '#EA580C' },
-        { id: 'coral', name: 'Coral', hex: '#FB923C' }
-    ];
-
-    const brands = [
-        { id: 'chanel', name: 'Chanel' },
-        { id: 'dior', name: 'Dior' },
-        { id: 'lancome', name: 'Lancôme' },
-        { id: 'mac', name: 'MAC' },
-        { id: 'nars', name: 'NARS' }
+    const productTypes = [
+        { id: 'face', name: 'Mặt' },
+        { id: 'eyes', name: 'Mắt' },
+        { id: 'lips', name: 'Môi' },
+        { id: 'cheeks', name: 'Má' },
+        { id: 'brushes', name: 'Cọ' },
+        { id: 'accessories', name: 'Phụ kiện' }
     ];
 
     const products = [
@@ -49,7 +39,6 @@ const Collection = () => {
             originalPrice: null,
             image: '/product1.jpg',
             badge: 'Best Seller',
-            colors: ['nude', 'brown'],
             rating: 4.5
         },
         {
@@ -60,7 +49,6 @@ const Collection = () => {
             originalPrice: 1200000,
             image: '/product2.jpg',
             badge: null,
-            colors: ['pink', 'coral'],
             rating: 4.8
         },
         {
@@ -71,7 +59,6 @@ const Collection = () => {
             originalPrice: null,
             image: '/product3.jpg',
             badge: null,
-            colors: ['red', 'brown'],
             rating: 4.3
         },
         {
@@ -82,7 +69,6 @@ const Collection = () => {
             originalPrice: 850000,
             image: '/product4.jpg',
             badge: 'Sale',
-            colors: ['brown', 'nude'],
             rating: 4.6
         },
         {
@@ -93,7 +79,6 @@ const Collection = () => {
             originalPrice: null,
             image: '/product5.jpg',
             badge: null,
-            colors: ['brown'],
             rating: 4.7
         },
         {
@@ -104,7 +89,6 @@ const Collection = () => {
             originalPrice: 1100000,
             image: '/product6.jpg',
             badge: 'New',
-            colors: ['red', 'pink', 'nude'],
             rating: 4.9
         }
     ];
@@ -116,27 +100,18 @@ const Collection = () => {
         }));
     };
 
-    const toggleColor = (colorId) => {
-        setSelectedColors(prev =>
-            prev.includes(colorId)
-                ? prev.filter(c => c !== colorId)
-                : [...prev, colorId]
-        );
-    };
-
-    const toggleBrand = (brandId) => {
-        setSelectedBrands(prev =>
-            prev.includes(brandId)
-                ? prev.filter(b => b !== brandId)
-                : [...prev, brandId]
+    const toggleProductType = (typeId) => {
+        setSelectedProductTypes(prev =>
+            prev.includes(typeId)
+                ? prev.filter(t => t !== typeId)
+                : [...prev, typeId]
         );
     };
 
     const clearFilters = () => {
         setSelectedCategory('all');
         setPriceRange([0, 5000000]);
-        setSelectedColors([]);
-        setSelectedBrands([]);
+        setSelectedProductTypes([]);
     };
 
     const formatPrice = (price) => {
@@ -228,51 +203,25 @@ const Collection = () => {
                             )}
                         </div>
 
-                        {/* Color Filter */}
+                        {/* Product Type Filter */}
                         <div className="collection__filter-group">
                             <button
                                 className="collection__filter-title"
-                                onClick={() => toggleSection('color')}
+                                onClick={() => toggleSection('productType')}
                             >
-                                <span>Màu sắc</span>
-                                {expandedSections.color ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
+                                <span>Loại sản phẩm</span>
+                                {expandedSections.productType ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
                             </button>
-                            {expandedSections.color && (
+                            {expandedSections.productType && (
                                 <div className="collection__filter-content">
-                                    <div className="collection__colors">
-                                        {colors.map(color => (
-                                            <button
-                                                key={color.id}
-                                                className={`collection__color ${selectedColors.includes(color.id) ? 'active' : ''}`}
-                                                style={{ backgroundColor: color.hex }}
-                                                onClick={() => toggleColor(color.id)}
-                                                title={color.name}
-                                            />
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Brand Filter */}
-                        <div className="collection__filter-group">
-                            <button
-                                className="collection__filter-title"
-                                onClick={() => toggleSection('brand')}
-                            >
-                                <span>Thương hiệu</span>
-                                {expandedSections.brand ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
-                            </button>
-                            {expandedSections.brand && (
-                                <div className="collection__filter-content">
-                                    {brands.map(brand => (
-                                        <label key={brand.id} className="collection__checkbox">
+                                    {productTypes.map(type => (
+                                        <label key={type.id} className="collection__checkbox">
                                             <input
                                                 type="checkbox"
-                                                checked={selectedBrands.includes(brand.id)}
-                                                onChange={() => toggleBrand(brand.id)}
+                                                checked={selectedProductTypes.includes(type.id)}
+                                                onChange={() => toggleProductType(type.id)}
                                             />
-                                            <span className="collection__checkbox-label">{brand.name}</span>
+                                            <span className="collection__checkbox-label">{type.name}</span>
                                         </label>
                                     ))}
                                 </div>
@@ -341,20 +290,6 @@ const Collection = () => {
                                             {product.originalPrice && (
                                                 <span className="collection__price-original">{formatPrice(product.originalPrice)}</span>
                                             )}
-                                        </div>
-
-                                        <div className="collection__product-colors">
-                                            {product.colors.map(colorId => {
-                                                const color = colors.find(c => c.id === colorId);
-                                                return (
-                                                    <span
-                                                        key={colorId}
-                                                        className="collection__product-color"
-                                                        style={{ backgroundColor: color?.hex }}
-                                                        title={color?.name}
-                                                    />
-                                                );
-                                            })}
                                         </div>
                                     </div>
                                 </div>
