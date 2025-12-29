@@ -1,20 +1,19 @@
-import React, { useState } from 'react';
-import { User, Package, Heart, CheckCircle, Mail, Calendar, X, ShoppingCart, Check, Grid3x3 } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { User, Package, Heart, CheckCircle, Mail, Calendar, X, ShoppingCart, Check, Grid3x3, Upload } from 'lucide-react';
 import LayoutDefault from '../layout_default/layout_default';
-import '../auth/auth.scss';
+import './auth.scss';
 
 const Profile = () => {
     const [activeTab, setActiveTab] = useState('info');
     const [emailNotification, setEmailNotification] = useState(true);
+    const fileInputRef = useRef(null);
 
     const [formData, setFormData] = useState({
-        firstName: 'Isabelle',
-        lastName: 'Duong',
+        fullName: 'Isabelle Duong',
         email: 'isabelle.d@example.com',
         phone: '+84 901 234 567',
         dateOfBirth: '',
-        gender: 'Nữ',
-        country: 'Việt Nam'
+        gender: 'Nữ'
     });
 
     const handleChange = (e) => {
@@ -31,12 +30,23 @@ const Profile = () => {
         alert('Thông tin đã được cập nhật thành công!');
     };
 
+    const handleAvatarClick = () => {
+        fileInputRef.current?.click();
+    };
+
+    const handleFileChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            console.log('Selected file:', file);
+            // Xử lý upload ảnh ở đây
+        }
+    };
+
     const menuItems = [
         { id: 'info', label: 'Thông tin cá nhân' },
         { id: 'orders', label: 'Lịch sử đơn hàng' },
         { id: 'wishlist', label: 'Sản phẩm yêu thích' }
     ];
-
 
     const orders = [
         {
@@ -73,7 +83,6 @@ const Profile = () => {
             ]
         }
     ];
-
 
     const wishlistItems = [
         {
@@ -131,7 +140,6 @@ const Profile = () => {
         <LayoutDefault>
             <div className="profile">
                 <div className="profile__container">
-
                     <aside className="profile__sidebar">
                         <div className="profile__user">
                             <div className="profile__avatar">
@@ -142,6 +150,21 @@ const Profile = () => {
                             </div>
                             <h2 className="profile__user-name">Isabelle Duong</h2>
                             <p className="profile__user-email">isabelle.d@example.com</p>
+                            <button
+                                type="button"
+                                className="profile__avatar-edit-btn"
+                                onClick={handleAvatarClick}
+                            >
+                                <Upload size={16} />
+                                Chỉnh sửa ảnh đại diện
+                            </button>
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept="image/*"
+                                onChange={handleFileChange}
+                                style={{ display: 'none' }}
+                            />
                         </div>
 
                         <nav className="profile__menu">
@@ -162,7 +185,6 @@ const Profile = () => {
                         </nav>
                     </aside>
 
-
                     <main className="profile__content">
                         {activeTab === 'info' && (
                             <div className="profile__section">
@@ -174,36 +196,19 @@ const Profile = () => {
                                 </div>
 
                                 <div className="profile__card">
-                                    <div className="profile__card-header">
-                                        <h2>Chi tiết hồ sơ</h2>
-                                        <button className="profile__edit-btn">Chỉnh sửa ảnh đại diện</button>
-                                    </div>
+                                    <h2>Chi tiết hồ sơ</h2>
 
                                     <form className="profile__form" onSubmit={handleSubmit}>
-                                        <div className="profile__form-row">
-                                            <div className="profile__form-group">
-                                                <label htmlFor="firstName">Tên</label>
-                                                <input
-                                                    type="text"
-                                                    id="firstName"
-                                                    name="firstName"
-                                                    value={formData.firstName}
-                                                    onChange={handleChange}
-                                                    placeholder="Nhập tên"
-                                                />
-                                            </div>
-
-                                            <div className="profile__form-group">
-                                                <label htmlFor="lastName">Họ</label>
-                                                <input
-                                                    type="text"
-                                                    id="lastName"
-                                                    name="lastName"
-                                                    value={formData.lastName}
-                                                    onChange={handleChange}
-                                                    placeholder="Nhập họ"
-                                                />
-                                            </div>
+                                        <div className="profile__form-group">
+                                            <label htmlFor="fullName">Họ và tên</label>
+                                            <input
+                                                type="text"
+                                                id="fullName"
+                                                name="fullName"
+                                                value={formData.fullName}
+                                                onChange={handleChange}
+                                                placeholder="Nhập họ và tên"
+                                            />
                                         </div>
 
                                         <div className="profile__form-group">
@@ -258,24 +263,11 @@ const Profile = () => {
                                             </div>
                                         </div>
 
-                                        <div className="profile__form-group">
-                                            <label htmlFor="country">Quốc gia</label>
-                                            <input
-                                                type="text"
-                                                id="country"
-                                                name="country"
-                                                value={formData.country}
-                                                onChange={handleChange}
-                                                placeholder="Nhập quốc gia"
-                                            />
-                                        </div>
-
                                         <button type="submit" className="profile__submit-btn">
                                             Lưu thay đổi
                                         </button>
                                     </form>
                                 </div>
-
 
                                 <div className="profile__card profile__notification">
                                     <h2>Tùy chọn liên lạc</h2>

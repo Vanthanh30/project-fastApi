@@ -37,13 +37,23 @@ const Sidebar = () => {
     };
 
     const handleLogout = () => {
-        console.log('Đăng xuất');
-        // Thêm logic đăng xuất ở đây
+        // Xóa id và token khỏi localStorage
+        localStorage.removeItem('id');
+        localStorage.removeItem('token');
+
+        // Có thể xóa thêm các item khác nếu cần
+        // localStorage.removeItem('user');
+        // localStorage.removeItem('role');
+
+        // Hoặc xóa toàn bộ localStorage
+        // localStorage.clear();
+
+        console.log('Đăng xuất thành công');
+        navigate('/admin/login');
     };
 
     return (
         <div className="sidebar">
-            {/* Logo Header */}
             <div className="sidebar__header">
                 <div className="sidebar__logo">
                     <span className="sidebar__logo-icon">★</span>
@@ -51,7 +61,6 @@ const Sidebar = () => {
                 </div>
             </div>
 
-            {/* Menu Items */}
             <nav className="sidebar__nav">
                 <ul className="sidebar__menu">
                     {menuItems.map((item) => {
@@ -73,7 +82,6 @@ const Sidebar = () => {
                 </ul>
             </nav>
 
-            {/* User Profile */}
             <div className="sidebar__footer">
                 <div className="sidebar__user">
                     <div className="sidebar__user-avatar">

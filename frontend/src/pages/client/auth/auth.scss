@@ -843,7 +843,7 @@
     }
 }
 
-// PROFILE PAGE STYLES - Added at the end of auth.scss
+// PROFILE PAGE STYLES
 .profile {
     background: #f8f9fa;
     min-height: 100vh;
@@ -915,6 +915,30 @@
         align-items: center;
         justify-content: center;
         color: white;
+    }
+
+    &__avatar-edit-btn {
+        width: 100%;
+        padding: 10px 16px;
+        background: white;
+        border: 1.5px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 500;
+        color: #666;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 15px;
+
+        &:hover {
+            border-color: #dc2626;
+            color: #dc2626;
+            background: #fff5f5;
+        }
     }
 
     &__user-name {
@@ -1041,36 +1065,6 @@
 
         @media (max-width: 768px) {
             padding: 20px;
-        }
-    }
-
-    &__card-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 25px;
-
-        @media (max-width: 768px) {
-            flex-direction: column;
-            gap: 15px;
-            align-items: flex-start;
-        }
-    }
-
-    &__edit-btn {
-        padding: 8px 18px;
-        background: white;
-        border: 1.5px solid #e0e0e0;
-        border-radius: 6px;
-        font-size: 13px;
-        font-weight: 500;
-        color: #666;
-        cursor: pointer;
-        transition: all 0.2s;
-
-        &:hover {
-            border-color: #dc2626;
-            color: #dc2626;
         }
     }
 
