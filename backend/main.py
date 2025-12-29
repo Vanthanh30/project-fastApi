@@ -1,14 +1,17 @@
 from fastapi import FastAPI
 from app.db.base import get_db
-from app.models import Base
+from app.models.base_model import Base
 from app.db.base import engine
-
-
+from app.routers.auth import router as auth_router
+from app.routers.admin import router as admin_router
+from app.utils.seed_admin import seed_admin
 app = FastAPI()
 
 Base.metadata.create_all(bind=engine)
 
-
+app.include_router(auth_router)
+app.include_router(admin_router)
+seed_admin()
 
 @app.get("/")
 async def root():
