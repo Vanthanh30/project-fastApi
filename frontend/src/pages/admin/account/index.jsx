@@ -7,86 +7,50 @@ import accountService from '../../../service/accountService';
 
 const AccountPage = () => {
     const navigate = useNavigate();
-    const [activeTab, setActiveTab] = useState('admin'); // 'admin' or 'customer'
-    const [adminAccounts, setAdminAccounts] = useState([]);
+    const [activeTab, setActiveTab] = useState('admin');
+    const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
-
-    // Dữ liệu khách hàng tĩnh (không thay đổi)
-    const customerAccounts = [
-        {
-            id: 'C0001',
-            name: 'Võ Thị Lan',
-            email: 'lan.vo@gmail.com',
-            avatar: 'https://i.pravatar.cc/150?img=5',
-            phone: '0912345678'
-        },
-        {
-            id: 'C0002',
-            name: 'Đặng Minh Khôi',
-            email: 'khoi.dang@gmail.com',
-            avatar: 'https://i.pravatar.cc/150?img=6',
-            phone: '0987654321'
-        },
-        {
-            id: 'C0003',
-            name: 'Lý Thu Hằng',
-            email: 'hang.ly@gmail.com',
-            avatar: 'https://i.pravatar.cc/150?img=7',
-            phone: '0901234567'
-        }
-    ];
-
-    // Load danh sách admin khi component mount hoặc khi chuyển sang tab admin
     useEffect(() => {
-        if (activeTab === 'admin') {
-            loadAdminAccounts();
-        }
+        loadUsers();
     }, [activeTab]);
 
-    const loadAdminAccounts = async () => {
+    const loadUsers = async () => {
         try {
             setLoading(true);
             setError('');
 
-            console.log('🔍 Fetching admin accounts...');
-            const data = await accountService.getAllAdmins();
-            console.log('📦 Received data:', data);
-
-            // Xử lý response - data có thể là array hoặc single object
-            let accounts = [];
-
-            if (Array.isArray(data)) {
-                accounts = data;
-            } else if (data && typeof data === 'object') {
-                // Nếu là single object, wrap trong array
-                accounts = [data];
-            }
-
-            console.log('✅ Processed accounts:', accounts);
-            setAdminAccounts(accounts);
+            const data = await accountService.getAllUsers();
+            const userList = Array.isArray(data) ? data : [];
+            setUsers(userList);
 
         } catch (err) {
-            console.error('❌ Load admins error:', err);
-            setError('Không thể tải danh sách admin');
-            setAdminAccounts([]);
+            console.error('Load users error:', err);
+            setError('Không thể tải danh sách người dùng');
+            setUsers([]);
         } finally {
             setLoading(false);
         }
     };
-
-    const currentAccounts = activeTab === 'admin' ? adminAccounts : customerAccounts;
+    const filteredUsers = users.filter(user => {
+        if (activeTab === 'admin') {
+            return user.role_id === 1;
+        } else {
+            return user.role_id === 2;
+        }
+    });
 
     const handleEdit = (id) => {
-        navigate(`/admin/account/edit/${id}`);
+        if (activeTab === 'admin') {
+            navigate(`/admin/account/edit/${id}`);
+        }
     };
 
     const handleDelete = async (id) => {
-        if (window.confirm('Bạn có chắc chắn muốn xóa tài khoản này?')) {
+        if (window.confirm('Bạn có chắc chắn muốn xóa tài khoản này? Hành động này không thể hoàn tác.')) {
             try {
-                await accountService.deleteAdmin(id);
-                // Reload danh sách sau khi xóa
-                loadAdminAccounts();
+                await accountService.deleteUser(id);
+                loadUsers();
                 alert('Xóa tài khoản thành công');
             } catch (err) {
                 console.error('Delete error:', err);
@@ -104,7 +68,6 @@ const AccountPage = () => {
             <Sidebar />
 
             <div className="account-page__content">
-                {/* Header */}
                 <div className="account-page__header">
                     <div className="account-page__header-info">
                         <h1 className="account-page__title">Quản lý tài khoản</h1>
@@ -119,79 +82,81 @@ const AccountPage = () => {
                         </button>
                     )}
                 </div>
-
-                {/* Tabs */}
                 <div className="account-page__tabs">
                     <button
                         className={`account-page__tab ${activeTab === 'admin' ? 'account-page__tab--active' : ''}`}
                         onClick={() => setActiveTab('admin')}
                     >
                         <User className="account-page__tab-icon" size={18} />
-                        Quản trị viên (Admins)
+                        Quản trị viên ({users.filter(u => u.role_id === 1).length})
                     </button>
                     <button
                         className={`account-page__tab ${activeTab === 'customer' ? 'account-page__tab--active' : ''}`}
                         onClick={() => setActiveTab('customer')}
                     >
                         <Users className="account-page__tab-icon" size={18} />
-                        Khách hàng (Customers)
+                        Khách hàng ({users.filter(u => u.role_id === 2).length})
                     </button>
                 </div>
-
-                {/* Error Message */}
-                {error && activeTab === 'admin' && (
+                {error && (
                     <div style={{
                         padding: '1rem',
                         margin: '1rem 0',
                         backgroundColor: '#fee',
                         color: '#c33',
-                        borderRadius: '8px'
+                        borderRadius: '8px',
+                        border: '1px solid #fcc'
                     }}>
                         {error}
                     </div>
                 )}
-
-                {/* Loading */}
-                {loading && activeTab === 'admin' ? (
-                    <div style={{ padding: '2rem', textAlign: 'center' }}>
-                        Đang tải danh sách admin...
+                {loading ? (
+                    <div style={{
+                        padding: '3rem',
+                        textAlign: 'center',
+                        fontSize: '1.1rem',
+                        color: '#666'
+                    }}>
+                        <div style={{ marginBottom: '1rem' }}>⏳</div>
+                        Đang tải danh sách...
                     </div>
                 ) : (
                     <>
-                        {/* Table */}
                         <div className="account-page__table-wrapper">
                             <table className="account-page__table">
                                 <thead>
                                     <tr>
                                         <th>STT</th>
                                         <th>AVATAR</th>
-                                        <th>TÊN TÀI KHOẢN</th>
+                                        <th>TÊN</th>
                                         <th>EMAIL</th>
-                                        {activeTab === 'admin' ? (
-                                            <th>TRẠNG THÁI</th>
-                                        ) : (
-                                            <th>SỐ ĐIỆN THOẠI</th>
-                                        )}
+                                        <th>SỐ ĐIỆN THOẠI</th>
+                                        <th>TRẠNG THÁI</th>
                                         <th>HÀNH ĐỘNG</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {currentAccounts.length === 0 ? (
+                                    {filteredUsers.length === 0 ? (
                                         <tr>
-                                            <td colSpan="6" style={{ textAlign: 'center', padding: '2rem' }}>
+                                            <td colSpan="7" style={{
+                                                textAlign: 'center',
+                                                padding: '3rem',
+                                                color: '#999',
+                                                fontSize: '1rem'
+                                            }}>
                                                 {activeTab === 'admin'
-                                                    ? 'Chưa có admin nào'
-                                                    : 'Chưa có khách hàng nào'}
+                                                    ? '📭 Chưa có quản trị viên nào'
+                                                    : '📭 Chưa có khách hàng nào'}
                                             </td>
                                         </tr>
                                     ) : (
-                                        currentAccounts.map((account, index) => (
-                                            <tr key={account.id} style={{ animationDelay: `${index * 0.05}s` }}>
+                                        filteredUsers.map((user, index) => (
+                                            <tr key={user.id} style={{ animationDelay: `${index * 0.05}s` }}>
                                                 <td className="account-page__stt">{index + 1}</td>
                                                 <td>
                                                     <img
-                                                        src={account.avatar || 'https://via.placeholder.com/40'}
-                                                        alt={account.name}
+                                                        src={user.avatar || 'https://via.placeholder.com/40'}
+                                                        alt={user.name}
                                                         className="account-page__avatar"
                                                         onError={(e) => {
                                                             e.target.onerror = null;
@@ -199,34 +164,31 @@ const AccountPage = () => {
                                                         }}
                                                     />
                                                 </td>
-                                                <td className="account-page__name">{account.name}</td>
-                                                <td className="account-page__email">{account.email}</td>
-                                                {activeTab === 'admin' ? (
-                                                    <td>
-                                                        <span className={`account-page__status ${account.status === 'Hoạt động' || account.is_active
-                                                                ? 'account-page__status--active'
-                                                                : 'account-page__status--inactive'
-                                                            }`}>
-                                                            {account.status || (account.is_active ? 'Hoạt động' : 'Vô hiệu hóa')}
-                                                        </span>
-                                                    </td>
-                                                ) : (
-                                                    <td className="account-page__phone">{account.phone}</td>
-                                                )}
+                                                <td className="account-page__name">{user.name || 'N/A'}</td>
+                                                <td className="account-page__email">{user.email}</td>
+                                                <td className="account-page__phone">{user.phone || '-'}</td>
+                                                <td>
+                                                    <span className={`account-page__status ${user.status === 1
+                                                        ? 'account-page__status--active'
+                                                        : 'account-page__status--inactive'
+                                                        }`}>
+                                                        {user.status === 1 ? 'Hoạt động' : 'Vô hiệu hóa'}
+                                                    </span>
+                                                </td>
                                                 <td>
                                                     <div className="account-page__actions">
                                                         {activeTab === 'admin' ? (
                                                             <>
                                                                 <button
                                                                     className="account-page__action-btn account-page__action-btn--edit"
-                                                                    onClick={() => handleEdit(account.id)}
+                                                                    onClick={() => handleEdit(user.id)}
                                                                     title="Chỉnh sửa"
                                                                 >
                                                                     <Edit2 size={16} />
                                                                 </button>
                                                                 <button
                                                                     className="account-page__action-btn account-page__action-btn--delete"
-                                                                    onClick={() => handleDelete(account.id)}
+                                                                    onClick={() => handleDelete(user.id)}
                                                                     title="Xóa"
                                                                 >
                                                                     <Trash2 size={16} />
@@ -235,7 +197,7 @@ const AccountPage = () => {
                                                         ) : (
                                                             <button
                                                                 className="account-page__action-btn account-page__action-btn--view"
-                                                                onClick={() => console.log('View customer:', account.id)}
+                                                                onClick={() => console.log('View customer:', user.id)}
                                                                 title="Xem chi tiết"
                                                             >
                                                                 <MoreVertical size={16} />
@@ -249,9 +211,7 @@ const AccountPage = () => {
                                 </tbody>
                             </table>
                         </div>
-
-                        {/* Pagination - Hiển thị khi có dữ liệu */}
-                        {currentAccounts.length > 0 && (
+                        {filteredUsers.length > 0 && (
                             <div className="account-page__pagination">
                                 <button className="account-page__pagination-btn">
                                     &lt;

@@ -1,4 +1,3 @@
-
 import axios from 'axios';
 
 const API_BASE_URL = 'http://localhost:8000';
@@ -12,7 +11,6 @@ const authAxios = axios.create({
 });
 
 const authService = {
-
     login: async (credentials) => {
         try {
             const response = await authAxios.post('/auth/admin/login', {
@@ -20,30 +18,43 @@ const authService = {
                 password: credentials.password,
             });
 
-            const token = response.data.token || response.data.access_token;
+            const token = response.data.access_token;
 
-            if (token) {
-                localStorage.setItem('adminToken', token);
+            if (!token) {
+                throw new Error('Server did not return access token');
+            }
 
-                if (response.data.admin) {
-                    localStorage.setItem('adminInfo', JSON.stringify(response.data.admin));
-                }
+            localStorage.setItem('adminToken', token);
+
+            try {
+                const profileResponse = await axios.get(`${API_BASE_URL}/admin/me`, {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                });
+
+                localStorage.setItem('adminInfo', JSON.stringify(profileResponse.data));
+            } catch (profileError) {
+                console.warn('Could not fetch admin profile:', profileError);
             }
 
             return response.data;
         } catch (error) {
-            throw error.response?.data || { message: 'Đăng nhập thất bại' };
+            const errorMessage = error.response?.data?.detail || 'Đăng nhập thất bại';
+            throw { message: errorMessage };
         }
     },
 
-
     logout: async () => {
         try {
-            await authAxios.post('/auth/admin/logout', null, {
-                headers: {
-                    Authorization: `Bearer ${localStorage.getItem('adminToken')}`,
-                },
-            });
+            const token = localStorage.getItem('adminToken');
+            if (token) {
+                await authAxios.post('/auth/admin/logout', null, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
+            }
         } catch (error) {
             console.error('Logout error:', error);
         } finally {
@@ -56,11 +67,31 @@ const authService = {
         return !!localStorage.getItem('adminToken');
     },
 
-
     getStoredAdminInfo: () => {
         const adminInfo = localStorage.getItem('adminInfo');
         return adminInfo ? JSON.parse(adminInfo) : null;
     },
+
+    getProfile: async () => {
+        try {
+            const token = localStorage.getItem('adminToken');
+            if (!token) {
+                throw new Error('No token found');
+            }
+
+            const response = await axios.get(`${API_BASE_URL}/admin/me`, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+
+            localStorage.setItem('adminInfo', JSON.stringify(response.data));
+
+            return response.data;
+        } catch (error) {
+            throw error.response?.data || { message: 'Failed to fetch profile' };
+        }
+    }
 };
 
 export default authService;

@@ -14,8 +14,6 @@ const AdminLogin = () => {
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
-
-    // Kiểm tra nếu đã đăng nhập, redirect về dashboard
     useEffect(() => {
         if (adminService.isAuthenticated()) {
             navigate('/admin/dashboard', { replace: true });
@@ -28,7 +26,6 @@ const AdminLogin = () => {
             ...prev,
             [name]: value
         }));
-        // Clear error khi user bắt đầu nhập
         if (error) setError('');
     };
 
@@ -42,11 +39,7 @@ const AdminLogin = () => {
                 username: formData.username,
                 password: formData.password
             });
-
-            // Đăng nhập thành công
             console.log('Login successful:', response);
-
-            // Chuyển hướng đến dashboard với replace để không quay lại trang login
             navigate('/admin/dashboard', { replace: true });
         } catch (err) {
             console.error('Login error:', err);
@@ -60,7 +53,6 @@ const AdminLogin = () => {
         <div className="admin_auth">
             <div className="admin_auth__container">
                 <div className="admin_auth__box">
-                    {/* PHẦN TRÁI: ẢNH WAVY ĐEN + LOGO & TEXT Ở DƯỚI */}
                     <div className="admin_auth__section admin_auth__section--image">
                         <div className="admin_auth__admin-content">
                             <div className="admin_auth__admin-logo">
@@ -75,8 +67,6 @@ const AdminLogin = () => {
                             </p>
                         </div>
                     </div>
-
-                    {/* PHẦN PHẢI: FORM ĐĂNG NHẬP */}
                     <div className="admin_auth__section admin_auth__section--form">
                         <h2 className="admin_auth__title">Đăng nhập</h2>
                         <p className="admin_auth__subtitle">

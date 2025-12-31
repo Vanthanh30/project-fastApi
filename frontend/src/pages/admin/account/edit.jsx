@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Upload, Eye, EyeOff } from 'lucide-react';
 import Sidebar from '../layout_default/sidebar';
 import './account.scss';
@@ -7,7 +7,6 @@ import accountService from '../../../service/accountService';
 
 const AccountEdit = () => {
     const navigate = useNavigate();
-    const { id } = useParams();
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [loadingProfile, setLoadingProfile] = useState(true);
@@ -16,14 +15,12 @@ const AccountEdit = () => {
 
     const [formData, setFormData] = useState({
         name: '',
-        email: '',
-        role: '',
+        phone: '',
+        address: '',
         password: '',
         avatar: null
     });
     const [previewImage, setPreviewImage] = useState('');
-
-    // Load thông tin admin khi component mount
     useEffect(() => {
         loadAdminProfile();
     }, []);
@@ -35,13 +32,12 @@ const AccountEdit = () => {
 
             setFormData({
                 name: data.name || '',
-                email: data.email || '',
-                role: data.role || 'Admin',
+                phone: data.phone || '',
+                address: data.address || '',
                 password: '',
                 avatar: null
             });
 
-            // Set avatar preview nếu có
             if (data.avatar) {
                 setPreviewImage(data.avatar);
             }
@@ -59,7 +55,6 @@ const AccountEdit = () => {
             ...prev,
             [name]: value
         }));
-        // Clear messages
         if (error) setError('');
         if (success) setSuccess('');
     };
@@ -67,21 +62,16 @@ const AccountEdit = () => {
     const handleImageUpload = (e) => {
         const file = e.target.files[0];
         if (file) {
-            // Validate file size (max 2MB)
             if (file.size > 2 * 1024 * 1024) {
                 setError('Kích thước ảnh không được vượt quá 2MB');
                 return;
             }
-
-            // Validate file type
             if (!file.type.startsWith('image/')) {
                 setError('Chỉ chấp nhận file ảnh (JPG, PNG, GIF)');
                 return;
             }
 
             setFormData(prev => ({ ...prev, avatar: file }));
-
-            // Preview image
             const reader = new FileReader();
             reader.onloadend = () => {
                 setPreviewImage(reader.result);
@@ -99,27 +89,27 @@ const AccountEdit = () => {
         setLoading(true);
 
         try {
-            // Prepare data to update
             const updateData = {
                 name: formData.name,
-                email: formData.email,
+                phone: formData.phone,
+                address: formData.address,
             };
 
-            // Only add password if it's been changed
             if (formData.password && formData.password.trim() !== '') {
+                if (formData.password.length < 6) {
+                    setError('Mật khẩu phải có ít nhất 6 ký tự');
+                    setLoading(false);
+                    return;
+                }
                 updateData.password = formData.password;
             }
-
-            // Add avatar if changed
             if (formData.avatar instanceof File) {
                 updateData.avatar = formData.avatar;
             }
 
             const response = await accountService.updateProfile(updateData);
 
-            setSuccess('Cập nhật thông tin thành công!');
-
-            // Clear password field và reload profile
+            setSuccess(response.message || 'Cập nhật thông tin thành công!');
             setFormData(prev => ({ ...prev, password: '' }));
 
             setTimeout(() => {
@@ -131,21 +121,6 @@ const AccountEdit = () => {
             setError(err.message || 'Cập nhật thất bại. Vui lòng thử lại.');
         } finally {
             setLoading(false);
-        }
-    };
-
-    const handleDelete = async () => {
-        if (window.confirm('Bạn có chắc chắn muốn xóa tài khoản này? Hành động này không thể hoàn tác.')) {
-            try {
-                // Note: Hiện tại chưa có API endpoint để xóa admin account
-                console.log('Delete account:', id);
-                setSuccess('Đã xóa tài khoản thành công');
-                setTimeout(() => {
-                    navigate('/admin/account');
-                }, 1500);
-            } catch (err) {
-                setError('Không thể xóa tài khoản');
-            }
         }
     };
 
@@ -168,7 +143,6 @@ const AccountEdit = () => {
 
             <div className="account-page__content">
                 <div className="account-form">
-                    {/* Header */}
                     <div className="account-form__header">
                         <button
                             className="account-form__back-btn"
@@ -179,12 +153,10 @@ const AccountEdit = () => {
                         <div>
                             <h1 className="account-form__title">Chỉnh sửa tài khoản</h1>
                             <p className="account-form__subtitle">
-                                Cập nhật thông tin tài khoản {formData.name}
+                                Cập nhật thông tin tài khoản của bạn
                             </p>
                         </div>
                     </div>
-
-                    {/* Messages */}
                     {error && (
                         <div className="account-form__message account-form__message--error">
                             {error}
@@ -195,8 +167,6 @@ const AccountEdit = () => {
                             {success}
                         </div>
                     )}
-
-                    {/* Form */}
                     <form className="account-form__body" onSubmit={handleSubmit}>
                         <div className="account-form__section">
                             <h3 className="account-form__section-title">Ảnh đại diện</h3>
@@ -250,30 +220,31 @@ const AccountEdit = () => {
 
                                 <div className="account-form__field">
                                     <label className="account-form__label">
-                                        Email <span className="account-form__required">*</span>
+                                        Số điện thoại
                                     </label>
                                     <input
-                                        type="email"
-                                        name="email"
-                                        value={formData.email}
+                                        type="tel"
+                                        name="phone"
+                                        value={formData.phone}
                                         onChange={handleInputChange}
                                         className="account-form__input"
-                                        placeholder="name@example.vn"
+                                        placeholder="0912345678"
                                         disabled={loading}
-                                        required
                                     />
                                 </div>
 
-                                <div className="account-form__field">
+                                <div className="account-form__field" style={{ gridColumn: '1 / -1' }}>
                                     <label className="account-form__label">
-                                        Vai trò <span className="account-form__required">*</span>
+                                        Địa chỉ
                                     </label>
                                     <input
                                         type="text"
-                                        name="role"
-                                        value={formData.role}
-                                        className="account-form__input account-form__input--disabled"
-                                        disabled
+                                        name="address"
+                                        value={formData.address}
+                                        onChange={handleInputChange}
+                                        className="account-form__input"
+                                        placeholder="Nhập địa chỉ"
+                                        disabled={loading}
                                     />
                                 </div>
                             </div>
@@ -297,6 +268,7 @@ const AccountEdit = () => {
                                         className="account-form__input account-form__input--password"
                                         placeholder="••••••••"
                                         disabled={loading}
+                                        minLength={6}
                                     />
                                     <button
                                         type="button"
@@ -307,22 +279,12 @@ const AccountEdit = () => {
                                     </button>
                                 </div>
                                 <p className="account-form__hint">
-                                    Chỉ nhập mật khẩu nếu bạn muốn thay đổi
+                                    Chỉ nhập mật khẩu nếu bạn muốn thay đổi (tối thiểu 6 ký tự)
                                 </p>
                             </div>
                         </div>
-
-                        {/* Actions */}
                         <div className="account-form__actions">
-                            <button
-                                type="button"
-                                className="account-form__btn account-form__btn--delete"
-                                onClick={handleDelete}
-                                disabled={loading}
-                            >
-                                Xóa tài khoản
-                            </button>
-                            <div className="account-form__actions-right">
+                            <div className="account-form__actions-right" style={{ marginLeft: 'auto' }}>
                                 <button
                                     type="button"
                                     className="account-form__btn account-form__btn--cancel"

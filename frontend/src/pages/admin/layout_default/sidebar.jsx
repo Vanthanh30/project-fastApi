@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { LayoutDashboard, Package, ShoppingBag, Wallet, FolderOpen, User, LogOut } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import './Sidebar.scss';
-import adminService from '../../../service/authService';
+import authService from '../../../service/authService';
 
 const Sidebar = () => {
     const navigate = useNavigate();
@@ -17,24 +17,22 @@ const Sidebar = () => {
         { id: 'accounts', label: 'Quản lý tài khoản', icon: Wallet, path: '/admin/account' },
         { id: 'orders', label: 'Quản lý đơn hàng', icon: FolderOpen, path: '/admin/order' },
     ];
-
-    // Load thông tin admin khi component mount
     useEffect(() => {
         loadAdminInfo();
     }, []);
 
-    const loadAdminInfo = () => {
-        // Lấy thông tin admin từ localStorage (nhanh)
-        const storedInfo = adminService.getStoredAdminInfo();
-        setAdminInfo(storedInfo);
-
-        // Optional: Có thể fetch từ API để có data mới nhất
-        // adminService.getProfile()
-        //     .then(data => setAdminInfo(data))
-        //     .catch(err => console.error('Failed to load admin info:', err));
+    const loadAdminInfo = async () => {
+        const storedInfo = authService.getStoredAdminInfo();
+        if (storedInfo) {
+            setAdminInfo(storedInfo);
+        }
+        try {
+            const freshInfo = await authService.getProfile();
+            setAdminInfo(freshInfo);
+        } catch (err) {
+            console.error('Failed to load admin profile:', err);
+        }
     };
-
-    // Cập nhật activeMenu dựa trên URL hiện tại
     useEffect(() => {
         const currentPath = location.pathname;
         const currentItem = menuItems.find(item => {
@@ -57,35 +55,25 @@ const Sidebar = () => {
     const handleLogout = async () => {
         if (window.confirm('Bạn có chắc chắn muốn đăng xuất?')) {
             try {
-                // Call logout API
-                await adminService.logout();
-
+                await authService.logout();
                 console.log('Đăng xuất thành công');
-
-                // Redirect to login
                 navigate('/admin/login', { replace: true });
             } catch (error) {
                 console.error('Logout error:', error);
-                // Vẫn redirect về login page ngay cả khi có lỗi
                 navigate('/admin/login', { replace: true });
             }
         }
     };
 
-    // Default fallback avatar (SVG inline để tránh network request)
     const DEFAULT_AVATAR = `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40"><rect width="40" height="40" fill="%23e5e7eb"/><circle cx="20" cy="15" r="7" fill="%239ca3af"/><path d="M8 35 Q8 25 20 25 Q32 25 32 35 Z" fill="%239ca3af"/></svg>`;
 
-    // Lấy avatar URL hoặc sử dụng placeholder
     const getAvatarUrl = () => {
         if (adminInfo?.avatar) {
-            // Nếu avatar là full URL
             if (adminInfo.avatar.startsWith('http')) {
                 return adminInfo.avatar;
             }
-            // Nếu avatar là relative path, thêm base URL
-            return `${window.location.origin}${adminInfo.avatar}`;
+            return `http://localhost:8000${adminInfo.avatar}`;
         }
-        // Default placeholder - dùng SVG inline thay vì external URL
         return DEFAULT_AVATAR;
     };
 
@@ -126,9 +114,7 @@ const Sidebar = () => {
                             src={getAvatarUrl()}
                             alt={adminInfo?.name || 'Admin'}
                             onError={(e) => {
-                                // QUAN TRỌNG: Ngăn vòng lặp bằng cách set onerror = null
                                 e.target.onerror = null;
-                                // Dùng SVG inline thay vì URL external
                                 e.target.src = DEFAULT_AVATAR;
                             }}
                         />
@@ -138,7 +124,7 @@ const Sidebar = () => {
                             {adminInfo?.name || 'Quản trị viên'}
                         </p>
                         <p className="sidebar__user-email">
-                            {adminInfo?.email || 'admin@lumiere.com'}
+                            {adminInfo?.email || 'Loading...'}
                         </p>
                     </div>
                     <button
