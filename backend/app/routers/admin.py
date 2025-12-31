@@ -24,62 +24,54 @@ def get_admin_profile(user: User = Depends(authenticate)):
     }
 @router.put("/me", dependencies=[Depends(admin_required)])
 async def update_admin_profile(
-    # Text fields (optional)
     name: Optional[str] = Form(None),
     phone: Optional[str] = Form(None),
     address: Optional[str] = Form(None),
-    
-    # File upload (optional)
-    avatar: Optional[UploadFile] = File(None),
-    
-    # Password change (optional) - CHỈ 1 TRƯỜNG
     password: Optional[str] = Form(None),
-    
+    avatar: Optional[UploadFile] = File(None),
+
     db: Session = Depends(get_db),
     user: User = Depends(authenticate)
 ):
     updated_fields = []
-    
-    # 1️⃣ Update text fields
+
+    # 1️⃣ Text fields
     if name is not None:
         user.name = name
         updated_fields.append("name")
-    
+
     if phone is not None:
         user.phone = phone
         updated_fields.append("phone")
-    
+
     if address is not None:
         user.address = address
         updated_fields.append("address")
-    
-    # 2️⃣ Upload avatar
+
+    # 2️⃣ Avatar upload
     if avatar is not None:
-        avatar_url = await upload_avatar(avatar)
-        user.avatar = avatar_url
+        upload_result = await upload_avatar(avatar)
+        user.avatar = upload_result["url"]   # ✅ CHỈ LƯU URL
         updated_fields.append("avatar")
-    
-    # 3️⃣ Change password - CHỈ CẦN 1 TRƯỜNG
+
+    # 3️⃣ Password
     if password is not None:
-        # Validate password
         if len(password) < 6:
             raise HTTPException(
                 status_code=400,
                 detail="Password must be at least 6 characters"
             )
-        
-        # Hash và lưu mật khẩu mới
         user.password = hash_password(password)
         updated_fields.append("password")
-    
-    # 4️⃣ Commit changes
+
+    # 4️⃣ Commit
     if updated_fields:
         db.commit()
         db.refresh(user)
         message = f"Updated: {', '.join(updated_fields)}"
     else:
         message = "No fields to update"
-    
+
     return {
         "message": message,
         "user": {
@@ -91,7 +83,6 @@ async def update_admin_profile(
             "avatar": user.avatar,
             "role_id": user.role_id,
             "status": user.status
-            # Không trả về password!
         }
     }
 
