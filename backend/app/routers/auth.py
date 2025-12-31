@@ -19,15 +19,15 @@ def admin_login(data: LoginRequest, db: Session = Depends(get_db)):
             detail="Invalid email or password"
         )
 
-    if user.role != "admin":
+    if user.role.name != "admin": 
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You are not admin"
         )
 
-    token = create_access_token(user.id)
+    token = create_access_token(user.id, user.role.name)
     return {"access_token": token}
-@router.post("/logout")
+@router.post("/admin/logout")
 def logout(user=Depends(authenticate)):
     return {
         "message": "Logout successfully"
