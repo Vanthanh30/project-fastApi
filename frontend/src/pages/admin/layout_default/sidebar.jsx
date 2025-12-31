@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { LayoutDashboard, Package, ShoppingBag, Wallet, FolderOpen, User, LogOut } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import './Sidebar.scss';
-import adminService from '../../../service/adminService';
+import adminService from '../../../service/authService';
 
 const Sidebar = () => {
     const navigate = useNavigate();
@@ -72,6 +72,9 @@ const Sidebar = () => {
         }
     };
 
+    // Default fallback avatar (SVG inline để tránh network request)
+    const DEFAULT_AVATAR = `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40"><rect width="40" height="40" fill="%23e5e7eb"/><circle cx="20" cy="15" r="7" fill="%239ca3af"/><path d="M8 35 Q8 25 20 25 Q32 25 32 35 Z" fill="%239ca3af"/></svg>`;
+
     // Lấy avatar URL hoặc sử dụng placeholder
     const getAvatarUrl = () => {
         if (adminInfo?.avatar) {
@@ -82,8 +85,8 @@ const Sidebar = () => {
             // Nếu avatar là relative path, thêm base URL
             return `${window.location.origin}${adminInfo.avatar}`;
         }
-        // Default placeholder
-        return 'https://via.placeholder.com/40';
+        // Default placeholder - dùng SVG inline thay vì external URL
+        return DEFAULT_AVATAR;
     };
 
     return (
@@ -123,8 +126,10 @@ const Sidebar = () => {
                             src={getAvatarUrl()}
                             alt={adminInfo?.name || 'Admin'}
                             onError={(e) => {
+                                // QUAN TRỌNG: Ngăn vòng lặp bằng cách set onerror = null
                                 e.target.onerror = null;
-                                e.target.src = 'https://via.placeholder.com/40';
+                                // Dùng SVG inline thay vì URL external
+                                e.target.src = DEFAULT_AVATAR;
                             }}
                         />
                     </div>

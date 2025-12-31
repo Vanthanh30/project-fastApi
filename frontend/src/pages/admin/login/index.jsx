@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import './login.scss';
 import { LuEye, LuEyeOff, LuArrowRight } from "react-icons/lu";
-import adminService from '../../../service/adminService';
+import adminService from '../../../service/authService';
 
 const AdminLogin = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const [showPassword, setShowPassword] = useState(false);
     const [formData, setFormData] = useState({
         username: '',
@@ -13,6 +14,13 @@ const AdminLogin = () => {
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+
+    // Kiểm tra nếu đã đăng nhập, redirect về dashboard
+    useEffect(() => {
+        if (adminService.isAuthenticated()) {
+            navigate('/admin/dashboard', { replace: true });
+        }
+    }, [navigate]);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -38,8 +46,8 @@ const AdminLogin = () => {
             // Đăng nhập thành công
             console.log('Login successful:', response);
 
-            // Chuyển hướng đến dashboard
-            navigate('/admin/dashboard');
+            // Chuyển hướng đến dashboard với replace để không quay lại trang login
+            navigate('/admin/dashboard', { replace: true });
         } catch (err) {
             console.error('Login error:', err);
             setError(err.message || 'Email/Tên người dùng hoặc mật khẩu không đúng');
@@ -83,7 +91,7 @@ const AdminLogin = () => {
 
                         <form className="admin_auth__form" onSubmit={handleSubmit}>
                             <div className="admin_auth__form-group">
-                                <label className="admin_auth__label">Email hoặc Tên người dùng</label>
+                                <label className="admin_auth__label">Email</label>
                                 <input
                                     type="text"
                                     name="username"

@@ -1,44 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Edit2, Trash2, Plus, MoreVertical, User, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import Sidebar from '../layout_default/Sidebar';
+import Sidebar from '../layout_default/sidebar';
 import './account.scss';
+import accountService from '../../../service/accountService';
 
 const AccountPage = () => {
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('admin'); // 'admin' or 'customer'
+    const [adminAccounts, setAdminAccounts] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
 
-    const adminAccounts = [
-        {
-            id: 'A0001',
-            name: 'Trần Minh Thư',
-            email: 'thu.tran@example.vn',
-            avatar: 'https://i.pravatar.cc/150?img=1',
-            status: 'Hoạt động'
-        },
-        {
-            id: 'A0002',
-            name: 'Lê Hoàng Nam',
-            email: 'nam.le@example.vn',
-            avatar: 'https://i.pravatar.cc/150?img=2',
-            status: 'Hoạt động'
-        },
-        {
-            id: 'A0003',
-            name: 'Phạm Văn Tuấn',
-            email: 'tuan.pham@example.vn',
-            avatar: 'https://i.pravatar.cc/150?img=3',
-            status: 'Vô hiệu hóa'
-        },
-        {
-            id: 'A0004',
-            name: 'Nguyễn Kim Ngân',
-            email: 'ngan.nguyen@example.vn',
-            avatar: 'https://i.pravatar.cc/150?img=4',
-            status: 'Hoạt động'
-        }
-    ];
-
+    // Dữ liệu khách hàng tĩnh (không thay đổi)
     const customerAccounts = [
         {
             id: 'C0001',
@@ -63,15 +37,61 @@ const AccountPage = () => {
         }
     ];
 
+    // Load danh sách admin khi component mount hoặc khi chuyển sang tab admin
+    useEffect(() => {
+        if (activeTab === 'admin') {
+            loadAdminAccounts();
+        }
+    }, [activeTab]);
+
+    const loadAdminAccounts = async () => {
+        try {
+            setLoading(true);
+            setError('');
+
+            console.log('🔍 Fetching admin accounts...');
+            const data = await accountService.getAllAdmins();
+            console.log('📦 Received data:', data);
+
+            // Xử lý response - data có thể là array hoặc single object
+            let accounts = [];
+
+            if (Array.isArray(data)) {
+                accounts = data;
+            } else if (data && typeof data === 'object') {
+                // Nếu là single object, wrap trong array
+                accounts = [data];
+            }
+
+            console.log('✅ Processed accounts:', accounts);
+            setAdminAccounts(accounts);
+
+        } catch (err) {
+            console.error('❌ Load admins error:', err);
+            setError('Không thể tải danh sách admin');
+            setAdminAccounts([]);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const currentAccounts = activeTab === 'admin' ? adminAccounts : customerAccounts;
 
     const handleEdit = (id) => {
         navigate(`/admin/account/edit/${id}`);
     };
 
-    const handleDelete = (id) => {
+    const handleDelete = async (id) => {
         if (window.confirm('Bạn có chắc chắn muốn xóa tài khoản này?')) {
-            console.log('Delete account:', id);
+            try {
+                await accountService.deleteAdmin(id);
+                // Reload danh sách sau khi xóa
+                loadAdminAccounts();
+                alert('Xóa tài khoản thành công');
+            } catch (err) {
+                console.error('Delete error:', err);
+                alert(err.message || 'Xóa tài khoản thất bại');
+            }
         }
     };
 
@@ -118,100 +138,138 @@ const AccountPage = () => {
                     </button>
                 </div>
 
-                {/* Table */}
-                <div className="account-page__table-wrapper">
-                    <table className="account-page__table">
-                        <thead>
-                            <tr>
-                                <th>STT</th>
-                                <th>AVATAR</th>
-                                <th>TÊN TÀI KHOẢN</th>
-                                <th>EMAIL</th>
-                                {activeTab === 'admin' ? (
-                                    <th>TRẠNG THÁI</th>
-                                ) : (
-                                    <th>SỐ ĐIỆN THOẠI</th>
-                                )}
-                                <th>HÀNH ĐỘNG</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {currentAccounts.map((account, index) => (
-                                <tr key={account.id} style={{ animationDelay: `${index * 0.05}s` }}>
-                                    <td className="account-page__stt">{index + 1}</td>
-                                    <td>
-                                        <img
-                                            src={account.avatar}
-                                            alt={account.name}
-                                            className="account-page__avatar"
-                                        />
-                                    </td>
-                                    <td className="account-page__name">{account.name}</td>
-                                    <td className="account-page__email">{account.email}</td>
-                                    {activeTab === 'admin' ? (
-                                        <td>
-                                            <span className={`account-page__status ${account.status === 'Hoạt động'
-                                                ? 'account-page__status--active'
-                                                : 'account-page__status--inactive'
-                                                }`}>
-                                                {account.status}
-                                            </span>
-                                        </td>
-                                    ) : (
-                                        <td className="account-page__phone">{account.phone}</td>
-                                    )}
-                                    <td>
-                                        <div className="account-page__actions">
-                                            {activeTab === 'admin' ? (
-                                                <>
-                                                    <button
-                                                        className="account-page__action-btn account-page__action-btn--edit"
-                                                        onClick={() => handleEdit(account.id)}
-                                                        title="Chỉnh sửa"
-                                                    >
-                                                        <Edit2 size={16} />
-                                                    </button>
-                                                    <button
-                                                        className="account-page__action-btn account-page__action-btn--delete"
-                                                        onClick={() => handleDelete(account.id)}
-                                                        title="Xóa"
-                                                    >
-                                                        <Trash2 size={16} />
-                                                    </button>
-                                                </>
-                                            ) : (
-                                                <button
-                                                    className="account-page__action-btn account-page__action-btn--view"
-                                                    onClick={() => console.log('View customer:', account.id)}
-                                                    title="Xem chi tiết"
-                                                >
-                                                    <MoreVertical size={16} />
-                                                </button>
-                                            )}
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                {/* Error Message */}
+                {error && activeTab === 'admin' && (
+                    <div style={{
+                        padding: '1rem',
+                        margin: '1rem 0',
+                        backgroundColor: '#fee',
+                        color: '#c33',
+                        borderRadius: '8px'
+                    }}>
+                        {error}
+                    </div>
+                )}
 
-                {/* Pagination */}
-                <div className="account-page__pagination">
-                    <button className="account-page__pagination-btn">
-                        &lt;
-                    </button>
-                    <button className="account-page__pagination-btn account-page__pagination-btn--active">
-                        1
-                    </button>
-                    <button className="account-page__pagination-btn">2</button>
-                    <button className="account-page__pagination-btn">3</button>
-                    <span className="account-page__pagination-dots">...</span>
-                    <button className="account-page__pagination-btn">12</button>
-                    <button className="account-page__pagination-btn">
-                        &gt;
-                    </button>
-                </div>
+                {/* Loading */}
+                {loading && activeTab === 'admin' ? (
+                    <div style={{ padding: '2rem', textAlign: 'center' }}>
+                        Đang tải danh sách admin...
+                    </div>
+                ) : (
+                    <>
+                        {/* Table */}
+                        <div className="account-page__table-wrapper">
+                            <table className="account-page__table">
+                                <thead>
+                                    <tr>
+                                        <th>STT</th>
+                                        <th>AVATAR</th>
+                                        <th>TÊN TÀI KHOẢN</th>
+                                        <th>EMAIL</th>
+                                        {activeTab === 'admin' ? (
+                                            <th>TRẠNG THÁI</th>
+                                        ) : (
+                                            <th>SỐ ĐIỆN THOẠI</th>
+                                        )}
+                                        <th>HÀNH ĐỘNG</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {currentAccounts.length === 0 ? (
+                                        <tr>
+                                            <td colSpan="6" style={{ textAlign: 'center', padding: '2rem' }}>
+                                                {activeTab === 'admin'
+                                                    ? 'Chưa có admin nào'
+                                                    : 'Chưa có khách hàng nào'}
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        currentAccounts.map((account, index) => (
+                                            <tr key={account.id} style={{ animationDelay: `${index * 0.05}s` }}>
+                                                <td className="account-page__stt">{index + 1}</td>
+                                                <td>
+                                                    <img
+                                                        src={account.avatar || 'https://via.placeholder.com/40'}
+                                                        alt={account.name}
+                                                        className="account-page__avatar"
+                                                        onError={(e) => {
+                                                            e.target.onerror = null;
+                                                            e.target.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40"><rect width="40" height="40" fill="%23e5e7eb"/><circle cx="20" cy="15" r="7" fill="%239ca3af"/><path d="M8 35 Q8 25 20 25 Q32 25 32 35 Z" fill="%239ca3af"/></svg>';
+                                                        }}
+                                                    />
+                                                </td>
+                                                <td className="account-page__name">{account.name}</td>
+                                                <td className="account-page__email">{account.email}</td>
+                                                {activeTab === 'admin' ? (
+                                                    <td>
+                                                        <span className={`account-page__status ${account.status === 'Hoạt động' || account.is_active
+                                                                ? 'account-page__status--active'
+                                                                : 'account-page__status--inactive'
+                                                            }`}>
+                                                            {account.status || (account.is_active ? 'Hoạt động' : 'Vô hiệu hóa')}
+                                                        </span>
+                                                    </td>
+                                                ) : (
+                                                    <td className="account-page__phone">{account.phone}</td>
+                                                )}
+                                                <td>
+                                                    <div className="account-page__actions">
+                                                        {activeTab === 'admin' ? (
+                                                            <>
+                                                                <button
+                                                                    className="account-page__action-btn account-page__action-btn--edit"
+                                                                    onClick={() => handleEdit(account.id)}
+                                                                    title="Chỉnh sửa"
+                                                                >
+                                                                    <Edit2 size={16} />
+                                                                </button>
+                                                                <button
+                                                                    className="account-page__action-btn account-page__action-btn--delete"
+                                                                    onClick={() => handleDelete(account.id)}
+                                                                    title="Xóa"
+                                                                >
+                                                                    <Trash2 size={16} />
+                                                                </button>
+                                                            </>
+                                                        ) : (
+                                                            <button
+                                                                className="account-page__action-btn account-page__action-btn--view"
+                                                                onClick={() => console.log('View customer:', account.id)}
+                                                                title="Xem chi tiết"
+                                                            >
+                                                                <MoreVertical size={16} />
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {/* Pagination - Hiển thị khi có dữ liệu */}
+                        {currentAccounts.length > 0 && (
+                            <div className="account-page__pagination">
+                                <button className="account-page__pagination-btn">
+                                    &lt;
+                                </button>
+                                <button className="account-page__pagination-btn account-page__pagination-btn--active">
+                                    1
+                                </button>
+                                <button className="account-page__pagination-btn">2</button>
+                                <button className="account-page__pagination-btn">3</button>
+                                <span className="account-page__pagination-dots">...</span>
+                                <button className="account-page__pagination-btn">12</button>
+                                <button className="account-page__pagination-btn">
+                                    &gt;
+                                </button>
+                            </div>
+                        )}
+                    </>
+                )}
             </div>
         </div>
     );

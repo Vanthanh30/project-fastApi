@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Upload, Eye, EyeOff } from 'lucide-react';
-import Sidebar from '../layout_default/Sidebar';
+import Sidebar from '../layout_default/sidebar';
 import './account.scss';
-import adminService from '../../../service/adminService';
+import accountService from '../../../service/accountService';
 
 const AccountEdit = () => {
     const navigate = useNavigate();
@@ -31,7 +31,7 @@ const AccountEdit = () => {
     const loadAdminProfile = async () => {
         try {
             setLoadingProfile(true);
-            const data = await adminService.getProfile();
+            const data = await accountService.getProfile();
 
             setFormData({
                 name: data.name || '',
@@ -115,11 +115,13 @@ const AccountEdit = () => {
                 updateData.avatar = formData.avatar;
             }
 
-            const response = await adminService.updateProfile(updateData);
+            const response = await accountService.updateProfile(updateData);
 
             setSuccess('Cập nhật thông tin thành công!');
 
-            // Reload profile to get updated data
+            // Clear password field và reload profile
+            setFormData(prev => ({ ...prev, password: '' }));
+
             setTimeout(() => {
                 loadAdminProfile();
             }, 1000);
@@ -135,7 +137,7 @@ const AccountEdit = () => {
     const handleDelete = async () => {
         if (window.confirm('Bạn có chắc chắn muốn xóa tài khoản này? Hành động này không thể hoàn tác.')) {
             try {
-                // Implement delete API call here if needed
+                // Note: Hiện tại chưa có API endpoint để xóa admin account
                 console.log('Delete account:', id);
                 setSuccess('Đã xóa tài khoản thành công');
                 setTimeout(() => {
