@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Edit2, Trash2, Plus, MoreVertical, User, Users } from 'lucide-react';
+import { Edit2, Trash2, Plus, MoreVertical, User, Users, Inbox, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../layout_default/sidebar';
 import Pagination from '../../../components/Pagination/Pagination';
@@ -151,10 +151,14 @@ const AccountPage = () => {
                         padding: '3rem',
                         textAlign: 'center',
                         fontSize: '1.1rem',
-                        color: '#666'
+                        color: '#666',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: '1rem'
                     }}>
-                        <div style={{ marginBottom: '1rem' }}>⏳</div>
-                        Đang tải danh sách...
+                        <Loader2 size={32} className="animate-spin" style={{ color: '#3b82f6' }} />
+                        <span>Đang tải danh sách...</span>
                     </div>
                 ) : (
                     <>
@@ -180,9 +184,19 @@ const AccountPage = () => {
                                                 color: '#999',
                                                 fontSize: '1rem'
                                             }}>
-                                                {activeTab === 'admin'
-                                                    ? '📭 Chưa có quản trị viên nào'
-                                                    : '📭 Chưa có khách hàng nào'}
+                                                <div style={{
+                                                    display: 'flex',
+                                                    flexDirection: 'column',
+                                                    alignItems: 'center',
+                                                    gap: '0.75rem'
+                                                }}>
+                                                    <Inbox size={48} style={{ color: '#d1d5db' }} />
+                                                    <span>
+                                                        {activeTab === 'admin'
+                                                            ? 'Chưa có quản trị viên nào'
+                                                            : 'Chưa có khách hàng nào'}
+                                                    </span>
+                                                </div>
                                             </td>
                                         </tr>
                                     ) : (
@@ -264,4 +278,4 @@ const AccountPage = () => {
     );
 };
 
-export default AccountPage; 
+export default AccountPage;
