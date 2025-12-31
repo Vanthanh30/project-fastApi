@@ -7,9 +7,9 @@ from app.models.user import User
 from app.core.security import verify_password, create_access_token
 from app.middleware.authenticate import authenticate
 
-router = APIRouter(prefix="/auth", tags=["Auth"])
+router = APIRouter(prefix="/admin", tags=["ADMIN"])
 
-@router.post("/admin/login", response_model=TokenResponse)
+@router.post("/login", response_model=TokenResponse)
 def admin_login(data: LoginRequest, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == data.email).first()
 
