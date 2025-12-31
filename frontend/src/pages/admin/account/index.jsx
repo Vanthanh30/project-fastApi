@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Edit2, Trash2, Plus, MoreVertical, User, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../layout_default/sidebar';
+import Pagination from '../../../components/Pagination/Pagination';
 import './account.scss';
 import accountService from '../../../service/accountService';
 
@@ -11,8 +12,16 @@ const AccountPage = () => {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10;
+
     useEffect(() => {
         loadUsers();
+    }, [activeTab]);
+
+    // Reset về trang 1 khi đổi tab
+    useEffect(() => {
+        setCurrentPage(1);
     }, [activeTab]);
 
     const loadUsers = async () => {
@@ -32,6 +41,8 @@ const AccountPage = () => {
             setLoading(false);
         }
     };
+
+    // Lọc users theo tab
     const filteredUsers = users.filter(user => {
         if (activeTab === 'admin') {
             return user.role_id === 1;
@@ -39,6 +50,18 @@ const AccountPage = () => {
             return user.role_id === 2;
         }
     });
+
+    // Tính toán pagination
+    const totalItems = filteredUsers.length;
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentItems = filteredUsers.slice(indexOfFirstItem, indexOfLastItem);
+
+    // Handle page change
+    const handlePageChange = (pageNumber) => {
+        setCurrentPage(pageNumber);
+    };
 
     const handleEdit = (id) => {
         if (activeTab === 'admin') {
@@ -50,6 +73,16 @@ const AccountPage = () => {
         if (window.confirm('Bạn có chắc chắn muốn xóa tài khoản này? Hành động này không thể hoàn tác.')) {
             try {
                 await accountService.deleteUser(id);
+
+                // Tính lại số trang sau khi xóa
+                const newTotalItems = totalItems - 1;
+                const newTotalPages = Math.ceil(newTotalItems / itemsPerPage);
+
+                // Nếu trang hiện tại lớn hơn tổng số trang mới, chuyển về trang cuối
+                if (currentPage > newTotalPages && newTotalPages > 0) {
+                    setCurrentPage(newTotalPages);
+                }
+
                 loadUsers();
                 alert('Xóa tài khoản thành công');
             } catch (err) {
@@ -82,6 +115,7 @@ const AccountPage = () => {
                         </button>
                     )}
                 </div>
+
                 <div className="account-page__tabs">
                     <button
                         className={`account-page__tab ${activeTab === 'admin' ? 'account-page__tab--active' : ''}`}
@@ -98,6 +132,7 @@ const AccountPage = () => {
                         Khách hàng ({users.filter(u => u.role_id === 2).length})
                     </button>
                 </div>
+
                 {error && (
                     <div style={{
                         padding: '1rem',
@@ -110,6 +145,7 @@ const AccountPage = () => {
                         {error}
                     </div>
                 )}
+
                 {loading ? (
                     <div style={{
                         padding: '3rem',
@@ -136,7 +172,7 @@ const AccountPage = () => {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {filteredUsers.length === 0 ? (
+                                    {currentItems.length === 0 ? (
                                         <tr>
                                             <td colSpan="7" style={{
                                                 textAlign: 'center',
@@ -150,9 +186,11 @@ const AccountPage = () => {
                                             </td>
                                         </tr>
                                     ) : (
-                                        filteredUsers.map((user, index) => (
+                                        currentItems.map((user, index) => (
                                             <tr key={user.id} style={{ animationDelay: `${index * 0.05}s` }}>
-                                                <td className="account-page__stt">{index + 1}</td>
+                                                <td className="account-page__stt">
+                                                    {indexOfFirstItem + index + 1}
+                                                </td>
                                                 <td>
                                                     <img
                                                         src={user.avatar || 'https://via.placeholder.com/40'}
@@ -211,23 +249,14 @@ const AccountPage = () => {
                                 </tbody>
                             </table>
                         </div>
-                        {filteredUsers.length > 0 && (
-                            <div className="account-page__pagination">
-                                <button className="account-page__pagination-btn">
-                                    &lt;
-                                </button>
-                                <button className="account-page__pagination-btn account-page__pagination-btn--active">
-                                    1
-                                </button>
-                                <button className="account-page__pagination-btn">2</button>
-                                <button className="account-page__pagination-btn">3</button>
-                                <span className="account-page__pagination-dots">...</span>
-                                <button className="account-page__pagination-btn">12</button>
-                                <button className="account-page__pagination-btn">
-                                    &gt;
-                                </button>
-                            </div>
-                        )}
+
+                        <Pagination
+                            currentPage={currentPage}
+                            totalItems={totalItems}
+                            itemsPerPage={itemsPerPage}
+                            onPageChange={handlePageChange}
+                            showIfLessThan={4}
+                        />
                     </>
                 )}
             </div>
@@ -235,4 +264,4 @@ const AccountPage = () => {
     );
 };
 
-export default AccountPage;
+export default AccountPage; 
