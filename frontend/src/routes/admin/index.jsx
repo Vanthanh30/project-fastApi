@@ -10,53 +10,102 @@ import CreateProduct from "../../pages/admin/product/create";
 import OrderPage from "../../pages/admin/order";
 import EditProduct from "../../pages/admin/product/edit";
 import Dashboard from "../../pages/admin/dasboard";
+import ProtectedRoute from "../../components/ProtectedRoute";
+
 export const adminRoute = [
+  // Public route - Login (không cần bảo vệ)
   {
     path: "/admin/login",
     element: <Login />,
   },
+
+  // Protected routes - Tất cả routes khác cần đăng nhập
+  {
+    path: "/admin/dashboard",
+    element: (
+      <ProtectedRoute>
+        <Dashboard />
+      </ProtectedRoute>
+    ),
+  },
   {
     path: "/admin/category",
-    element: <CategoryPage />,
+    element: (
+      <ProtectedRoute>
+        <CategoryPage />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/admin/category/create",
-    element: <CategoryCreate />,
+    element: (
+      <ProtectedRoute>
+        <CategoryCreate />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/admin/category/edit/:id",
-    element: <CategoryEdit />,
+    element: (
+      <ProtectedRoute>
+        <CategoryEdit />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/admin/account",
-    element: <AccountPage />,
+    element: (
+      <ProtectedRoute>
+        <AccountPage />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/admin/account/create",
-    element: <AccountCreate />,
+    element: (
+      <ProtectedRoute>
+        <AccountCreate />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/admin/account/edit/:id",
-    element: <AccountEdit />,
+    element: (
+      <ProtectedRoute>
+        <AccountEdit />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/admin/product",
-    element: <ProductPage />,
+    element: (
+      <ProtectedRoute>
+        <ProductPage />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/admin/product/create",
-    element: <CreateProduct />,
+    element: (
+      <ProtectedRoute>
+        <CreateProduct />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/admin/product/edit/:id",
-    element: <EditProduct />,
+    element: (
+      <ProtectedRoute>
+        <EditProduct />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/admin/order",
-    element: <OrderPage />,
-  },
-  {
-    path: "/admin/dashboard",
-    element: <Dashboard />,
+    element: (
+      <ProtectedRoute>
+        <OrderPage />
+      </ProtectedRoute>
+    ),
   },
 ];

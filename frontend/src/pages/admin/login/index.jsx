@@ -1,8 +1,53 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './login.scss';
 import { LuEye, LuEyeOff, LuArrowRight } from "react-icons/lu";
+import adminService from '../../../service/adminService';
+
 const AdminLogin = () => {
+    const navigate = useNavigate();
     const [showPassword, setShowPassword] = useState(false);
+    const [formData, setFormData] = useState({
+        username: '',
+        password: ''
+    });
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
+
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: value
+        }));
+        // Clear error khi user bắt đầu nhập
+        if (error) setError('');
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setError('');
+        setLoading(true);
+
+        try {
+            const response = await adminService.login({
+                username: formData.username,
+                password: formData.password
+            });
+
+            // Đăng nhập thành công
+            console.log('Login successful:', response);
+
+            // Chuyển hướng đến dashboard
+            navigate('/admin/dashboard');
+        } catch (err) {
+            console.error('Login error:', err);
+            setError(err.message || 'Email/Tên người dùng hoặc mật khẩu không đúng');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <div className="admin_auth">
             <div className="admin_auth__container">
@@ -30,13 +75,24 @@ const AdminLogin = () => {
                             Chào mừng trở lại! Vui lòng nhập thông tin.
                         </p>
 
-                        <form className="admin_auth__form">
+                        {error && (
+                            <div className="admin_auth__error">
+                                {error}
+                            </div>
+                        )}
+
+                        <form className="admin_auth__form" onSubmit={handleSubmit}>
                             <div className="admin_auth__form-group">
                                 <label className="admin_auth__label">Email hoặc Tên người dùng</label>
                                 <input
                                     type="text"
+                                    name="username"
                                     className="admin_auth__input"
                                     placeholder="admin@example.com"
+                                    value={formData.username}
+                                    onChange={handleInputChange}
+                                    disabled={loading}
+                                    required
                                 />
                             </div>
 
@@ -46,8 +102,13 @@ const AdminLogin = () => {
                                 <div className="admin_auth__password-wrapper">
                                     <input
                                         type={showPassword ? "text" : "password"}
+                                        name="password"
                                         className="admin_auth__input admin_auth__input--password"
                                         placeholder="Nhập mật khẩu"
+                                        value={formData.password}
+                                        onChange={handleInputChange}
+                                        disabled={loading}
+                                        required
                                     />
 
                                     {showPassword ? (
@@ -64,8 +125,13 @@ const AdminLogin = () => {
                                 </div>
                             </div>
 
-                            <button type="submit" className="admin_auth__submit">
-                                Đăng nhập <LuArrowRight className="admin_auth__arrow-icon" />
+                            <button
+                                type="submit"
+                                className="admin_auth__submit"
+                                disabled={loading}
+                            >
+                                {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
+                                {!loading && <LuArrowRight className="admin_auth__arrow-icon" />}
                             </button>
                         </form>
                     </div>

@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { LayoutDashboard, Package, ShoppingBag, Wallet, FolderOpen, User, LogOut } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import './Sidebar.scss';
+import adminService from '../../../service/adminService';
 
 const Sidebar = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const [activeMenu, setActiveMenu] = useState('dashboard');
+    const [adminInfo, setAdminInfo] = useState(null);
 
     const menuItems = [
         { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/admin/dashboard' },
@@ -15,6 +17,22 @@ const Sidebar = () => {
         { id: 'accounts', label: 'Quản lý tài khoản', icon: Wallet, path: '/admin/account' },
         { id: 'orders', label: 'Quản lý đơn hàng', icon: FolderOpen, path: '/admin/order' },
     ];
+
+    // Load thông tin admin khi component mount
+    useEffect(() => {
+        loadAdminInfo();
+    }, []);
+
+    const loadAdminInfo = () => {
+        // Lấy thông tin admin từ localStorage (nhanh)
+        const storedInfo = adminService.getStoredAdminInfo();
+        setAdminInfo(storedInfo);
+
+        // Optional: Có thể fetch từ API để có data mới nhất
+        // adminService.getProfile()
+        //     .then(data => setAdminInfo(data))
+        //     .catch(err => console.error('Failed to load admin info:', err));
+    };
 
     // Cập nhật activeMenu dựa trên URL hiện tại
     useEffect(() => {
@@ -36,20 +54,36 @@ const Sidebar = () => {
         navigate(item.path);
     };
 
-    const handleLogout = () => {
-        // Xóa id và token khỏi localStorage
-        localStorage.removeItem('id');
-        localStorage.removeItem('token');
+    const handleLogout = async () => {
+        if (window.confirm('Bạn có chắc chắn muốn đăng xuất?')) {
+            try {
+                // Call logout API
+                await adminService.logout();
 
-        // Có thể xóa thêm các item khác nếu cần
-        // localStorage.removeItem('user');
-        // localStorage.removeItem('role');
+                console.log('Đăng xuất thành công');
 
-        // Hoặc xóa toàn bộ localStorage
-        // localStorage.clear();
+                // Redirect to login
+                navigate('/admin/login', { replace: true });
+            } catch (error) {
+                console.error('Logout error:', error);
+                // Vẫn redirect về login page ngay cả khi có lỗi
+                navigate('/admin/login', { replace: true });
+            }
+        }
+    };
 
-        console.log('Đăng xuất thành công');
-        navigate('/admin/login');
+    // Lấy avatar URL hoặc sử dụng placeholder
+    const getAvatarUrl = () => {
+        if (adminInfo?.avatar) {
+            // Nếu avatar là full URL
+            if (adminInfo.avatar.startsWith('http')) {
+                return adminInfo.avatar;
+            }
+            // Nếu avatar là relative path, thêm base URL
+            return `${window.location.origin}${adminInfo.avatar}`;
+        }
+        // Default placeholder
+        return 'https://via.placeholder.com/40';
     };
 
     return (
@@ -85,11 +119,22 @@ const Sidebar = () => {
             <div className="sidebar__footer">
                 <div className="sidebar__user">
                     <div className="sidebar__user-avatar">
-                        <img src="https://via.placeholder.com/40" alt="Admin" />
+                        <img
+                            src={getAvatarUrl()}
+                            alt={adminInfo?.name || 'Admin'}
+                            onError={(e) => {
+                                e.target.onerror = null;
+                                e.target.src = 'https://via.placeholder.com/40';
+                            }}
+                        />
                     </div>
                     <div className="sidebar__user-info">
-                        <p className="sidebar__user-name">Quản trị viên</p>
-                        <p className="sidebar__user-email">admin@lumiere.com</p>
+                        <p className="sidebar__user-name">
+                            {adminInfo?.name || 'Quản trị viên'}
+                        </p>
+                        <p className="sidebar__user-email">
+                            {adminInfo?.email || 'admin@lumiere.com'}
+                        </p>
                     </div>
                     <button
                         className="sidebar__logout"

@@ -409,3 +409,35 @@
         animation: fadeIn 0.8s ease-out;
     }
 }
+
+.admin_auth__error {
+    background-color: #fee;
+    border: 1px solid #fcc;
+    color: #c33;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    &::before {
+        content: "⚠";
+        font-size: 16px;
+    }
+}
+
+.admin_auth__submit {
+    &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+}
+
+.admin_auth__input {
+    &:disabled {
+        background-color: #f5f5f5;
+        cursor: not-allowed;
+    }
+}

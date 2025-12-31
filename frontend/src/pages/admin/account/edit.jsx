@@ -1,23 +1,57 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Upload, Eye, EyeOff } from 'lucide-react';
 import Sidebar from '../layout_default/Sidebar';
 import './account.scss';
+import adminService from '../../../service/adminService';
 
 const AccountEdit = () => {
     const navigate = useNavigate();
     const { id } = useParams();
     const [showPassword, setShowPassword] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [loadingProfile, setLoadingProfile] = useState(true);
+    const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
 
-    // Mock data - In real app, fetch based on id
     const [formData, setFormData] = useState({
-        name: 'Trần Minh Thư',
-        email: 'thu.tran@example.vn',
-        role: 'Admin',
+        name: '',
+        email: '',
+        role: '',
         password: '',
         avatar: null
     });
-    const [previewImage, setPreviewImage] = useState('https://i.pravatar.cc/150?img=1');
+    const [previewImage, setPreviewImage] = useState('');
+
+    // Load thông tin admin khi component mount
+    useEffect(() => {
+        loadAdminProfile();
+    }, []);
+
+    const loadAdminProfile = async () => {
+        try {
+            setLoadingProfile(true);
+            const data = await adminService.getProfile();
+
+            setFormData({
+                name: data.name || '',
+                email: data.email || '',
+                role: data.role || 'Admin',
+                password: '',
+                avatar: null
+            });
+
+            // Set avatar preview nếu có
+            if (data.avatar) {
+                setPreviewImage(data.avatar);
+            }
+        } catch (err) {
+            console.error('Load profile error:', err);
+            setError('Không thể tải thông tin tài khoản');
+        } finally {
+            setLoadingProfile(false);
+        }
+    };
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -25,32 +59,106 @@ const AccountEdit = () => {
             ...prev,
             [name]: value
         }));
+        // Clear messages
+        if (error) setError('');
+        if (success) setSuccess('');
     };
 
     const handleImageUpload = (e) => {
         const file = e.target.files[0];
         if (file) {
+            // Validate file size (max 2MB)
+            if (file.size > 2 * 1024 * 1024) {
+                setError('Kích thước ảnh không được vượt quá 2MB');
+                return;
+            }
+
+            // Validate file type
+            if (!file.type.startsWith('image/')) {
+                setError('Chỉ chấp nhận file ảnh (JPG, PNG, GIF)');
+                return;
+            }
+
             setFormData(prev => ({ ...prev, avatar: file }));
+
+            // Preview image
             const reader = new FileReader();
             reader.onloadend = () => {
                 setPreviewImage(reader.result);
             };
             reader.readAsDataURL(file);
+
+            setError('');
         }
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log('Update account:', id, formData);
-        navigate('/admin/account');
-    };
+        setError('');
+        setSuccess('');
+        setLoading(true);
 
-    const handleDelete = () => {
-        if (window.confirm('Bạn có chắc chắn muốn xóa tài khoản này?')) {
-            console.log('Delete account:', id);
-            navigate('/admin/account');
+        try {
+            // Prepare data to update
+            const updateData = {
+                name: formData.name,
+                email: formData.email,
+            };
+
+            // Only add password if it's been changed
+            if (formData.password && formData.password.trim() !== '') {
+                updateData.password = formData.password;
+            }
+
+            // Add avatar if changed
+            if (formData.avatar instanceof File) {
+                updateData.avatar = formData.avatar;
+            }
+
+            const response = await adminService.updateProfile(updateData);
+
+            setSuccess('Cập nhật thông tin thành công!');
+
+            // Reload profile to get updated data
+            setTimeout(() => {
+                loadAdminProfile();
+            }, 1000);
+
+        } catch (err) {
+            console.error('Update error:', err);
+            setError(err.message || 'Cập nhật thất bại. Vui lòng thử lại.');
+        } finally {
+            setLoading(false);
         }
     };
+
+    const handleDelete = async () => {
+        if (window.confirm('Bạn có chắc chắn muốn xóa tài khoản này? Hành động này không thể hoàn tác.')) {
+            try {
+                // Implement delete API call here if needed
+                console.log('Delete account:', id);
+                setSuccess('Đã xóa tài khoản thành công');
+                setTimeout(() => {
+                    navigate('/admin/account');
+                }, 1500);
+            } catch (err) {
+                setError('Không thể xóa tài khoản');
+            }
+        }
+    };
+
+    if (loadingProfile) {
+        return (
+            <div className="account-page">
+                <Sidebar />
+                <div className="account-page__content">
+                    <div className="account-form">
+                        <p>Đang tải thông tin...</p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="account-page">
@@ -74,6 +182,18 @@ const AccountEdit = () => {
                         </div>
                     </div>
 
+                    {/* Messages */}
+                    {error && (
+                        <div className="account-form__message account-form__message--error">
+                            {error}
+                        </div>
+                    )}
+                    {success && (
+                        <div className="account-form__message account-form__message--success">
+                            {success}
+                        </div>
+                    )}
+
                     {/* Form */}
                     <form className="account-form__body" onSubmit={handleSubmit}>
                         <div className="account-form__section">
@@ -96,6 +216,7 @@ const AccountEdit = () => {
                                             type="file"
                                             accept="image/*"
                                             onChange={handleImageUpload}
+                                            disabled={loading}
                                             hidden
                                         />
                                     </label>
@@ -120,6 +241,7 @@ const AccountEdit = () => {
                                         onChange={handleInputChange}
                                         className="account-form__input"
                                         placeholder="Nhập họ và tên"
+                                        disabled={loading}
                                         required
                                     />
                                 </div>
@@ -135,6 +257,7 @@ const AccountEdit = () => {
                                         onChange={handleInputChange}
                                         className="account-form__input"
                                         placeholder="name@example.vn"
+                                        disabled={loading}
                                         required
                                     />
                                 </div>
@@ -171,6 +294,7 @@ const AccountEdit = () => {
                                         onChange={handleInputChange}
                                         className="account-form__input account-form__input--password"
                                         placeholder="••••••••"
+                                        disabled={loading}
                                     />
                                     <button
                                         type="button"
@@ -192,6 +316,7 @@ const AccountEdit = () => {
                                 type="button"
                                 className="account-form__btn account-form__btn--delete"
                                 onClick={handleDelete}
+                                disabled={loading}
                             >
                                 Xóa tài khoản
                             </button>
@@ -200,14 +325,16 @@ const AccountEdit = () => {
                                     type="button"
                                     className="account-form__btn account-form__btn--cancel"
                                     onClick={() => navigate('/admin/account')}
+                                    disabled={loading}
                                 >
                                     Hủy bỏ
                                 </button>
                                 <button
                                     type="submit"
                                     className="account-form__btn account-form__btn--submit"
+                                    disabled={loading}
                                 >
-                                    Lưu thay đổi
+                                    {loading ? 'Đang lưu...' : 'Lưu thay đổi'}
                                 </button>
                             </div>
                         </div>

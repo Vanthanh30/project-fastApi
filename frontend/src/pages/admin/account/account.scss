@@ -772,3 +772,57 @@
         }
     }
 }
+
+.account-form__message {
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    &--error {
+        background-color: #fee;
+        border: 1px solid #fcc;
+        color: #c33;
+
+        &::before {
+            content: "⚠";
+            font-size: 16px;
+        }
+    }
+
+    &--success {
+        background-color: #efe;
+        border: 1px solid #cfc;
+        color: #3c3;
+
+        &::before {
+            content: "✓";
+            font-size: 16px;
+        }
+    }
+}
+
+.account-form__btn {
+    &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+}
+
+.account-form__input {
+    &:disabled {
+        background-color: #f5f5f5;
+        cursor: not-allowed;
+    }
+}
+
+.account-form__upload-btn {
+    &:has(input:disabled) {
+        opacity: 0.6;
+        cursor: not-allowed;
+        pointer-events: none;
+    }
+}
