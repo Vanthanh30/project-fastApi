@@ -9,6 +9,9 @@ class CategoryUpdate(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
     status: Optional[int] = None
+    
+    class Config:
+        from_attributes = True
 
 class CategoryResponse(BaseModel):
     id: int
