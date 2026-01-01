@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel,EmailStr
 from typing import Optional
 
 class LoginRequest(BaseModel):
@@ -12,3 +12,7 @@ class TokenResponse(BaseModel):
 class TokenPayload(BaseModel):
     user_id: int
     exp: int
+class RegisterRequest(BaseModel):
+    name: str
+    email: EmailStr
+    password: str
