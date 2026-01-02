@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Search, SlidersHorizontal, Edit2, Trash2, Plus, Loader, FolderOpen, AlertCircle } from 'lucide-react';
+import { Edit2, Trash2, Plus, Loader, FolderOpen, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../layout_default/Sidebar';
 import Pagination from '../../../components/Pagination/Pagination';
+import CategoryFilter from '../../../components/CategoryFilter/CategoryFilter';
 import categoryService from '../../../service/categoryService';
 import './category.scss';
 
@@ -12,7 +13,6 @@ const CategoryPage = () => {
     const [filteredCategories, setFilteredCategories] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
-    const [sortOrder, setSortOrder] = useState('all');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -24,7 +24,22 @@ const CategoryPage = () => {
 
     useEffect(() => {
         filterCategories();
-    }, [categories, searchTerm, sortOrder]);
+    }, [categories, searchTerm]);
+
+    // DEBUG: Kiểm tra dữ liệu categories
+    useEffect(() => {
+        if (categories.length > 0) {
+            console.log('Categories:', categories.map(c => ({
+                name: c.name,
+                desc: c.description,
+                descLength: c.description?.length,
+                // In ra từng ký tự để thấy ký tự ẩn
+                descChars: c.description?.split('').map((char, i) =>
+                    `[${i}]="${char}" (${char.charCodeAt(0)})`
+                )
+            })));
+        }
+    }, [categories]);
 
     const loadCategories = async () => {
         try {
@@ -44,15 +59,13 @@ const CategoryPage = () => {
         let filtered = [...categories];
 
         if (searchTerm) {
-            filtered = filtered.filter(cat =>
-                cat.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                cat.description?.toLowerCase().includes(searchTerm.toLowerCase())
-            );
-        }
+            const searchLower = searchTerm.toLowerCase().trim();
+            filtered = filtered.filter(cat => {
+                const name = cat.name?.toLowerCase().trim() || '';
+                const description = cat.description?.toLowerCase().trim() || '';
 
-        if (sortOrder !== 'all') {
-            const statusValue = sortOrder === 'active' ? 1 : 0;
-            filtered = filtered.filter(cat => cat.status === statusValue);
+                return name.includes(searchLower) || description.includes(searchLower);
+            });
         }
 
         setFilteredCategories(filtered);
@@ -151,32 +164,10 @@ const CategoryPage = () => {
                     </button>
                 </div>
 
-                <div className="category-page__toolbar">
-                    <div className="category-page__search">
-                        <Search className="category-page__search-icon" size={18} />
-                        <input
-                            type="text"
-                            placeholder="Tìm kiếm danh mục theo tên, mô tả..."
-                            value={searchTerm}
-                            onChange={handleSearch}
-                            className="category-page__search-input"
-                        />
-                    </div>
-                    <div className="category-page__filters">
-                        <select
-                            className="category-page__sort-select"
-                            value={sortOrder}
-                            onChange={(e) => setSortOrder(e.target.value)}
-                        >
-                            <option value="all">Tất cả trạng thái</option>
-                            <option value="active">Hoạt động</option>
-                            <option value="hidden">Ẩn</option>
-                        </select>
-                        <button className="category-page__filter-btn">
-                            <SlidersHorizontal size={18} />
-                        </button>
-                    </div>
-                </div>
+                <CategoryFilter
+                    searchTerm={searchTerm}
+                    onSearchChange={handleSearch}
+                />
 
                 <div className="category-page__table-wrapper">
                     {currentItems.length === 0 ? (
@@ -184,7 +175,7 @@ const CategoryPage = () => {
                             <FolderOpen size={48} className="category-page__empty-icon" />
                             <p className="category-page__empty-title">Không tìm thấy danh mục nào</p>
                             <p className="category-page__empty-subtitle">
-                                Thử thay đổi bộ lọc hoặc tìm kiếm với từ khóa khác
+                                Thử tìm kiếm với từ khóa khác
                             </p>
                         </div>
                     ) : (
