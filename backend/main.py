@@ -7,6 +7,9 @@ from app.routers.auth_google import router as auth_google_router
 from app.routers.auth_facebook import router as auth_facebook_router
 from app.core.config import settings
 from app.routers.auth_user import router as auth_user_router
+from app.routers.cart import router as cart_router 
+import app.models.category
+import app.models.product
 
 load_dotenv()
 
@@ -27,6 +30,8 @@ Base.metadata.create_all(bind=engine)
 app.include_router(auth_google_router)
 app.include_router(auth_facebook_router)
 app.include_router(auth_user_router)
+
+app.include_router(cart_router) 
 
 @app.get("/")
 async def root():
