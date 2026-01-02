@@ -1,57 +1,63 @@
-import React, { useState } from 'react';
-import { Search, SlidersHorizontal, Edit2, Trash2, Plus } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search, SlidersHorizontal, Edit2, Trash2, Plus, Loader, FolderOpen, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../layout_default/Sidebar';
+import Pagination from '../../../components/Pagination/Pagination';
+import categoryService from '../../../service/categoryService';
 import './category.scss';
 
 const CategoryPage = () => {
     const navigate = useNavigate();
+    const [categories, setCategories] = useState([]);
+    const [filteredCategories, setFilteredCategories] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [sortOrder, setSortOrder] = useState('all');
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-    const categories = [
-        {
-            id: 1,
-            name: 'Son Môi (Lipstick)',
-            type: 'Trang điểm môi',
-            description: 'Các dòng son môi, son kem lì, son dưỡng và chi tiết',
-            status: 'Hiển thị',
-            image: 'https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=200&h=200&fit=crop'
-        },
-        {
-            id: 2,
-            name: 'Kem Nền (Foundation)',
-            type: 'Trang điểm mặt',
-            description: 'Kem nền che phủ hoàn hảo, lâu trôi, với nhiều lựa chọn',
-            status: 'Hiển thị',
-            image: 'https://images.unsplash.com/photo-1631214524020-7e18db9a8f92?w=200&h=200&fit=crop'
-        },
-        {
-            id: 3,
-            name: 'Chăm Sóc Da (Skincare)',
-            type: 'Dưỡng da',
-            description: 'Các sản phẩm serum, kem dưỡng ẩm và làm sạch',
-            status: 'Ẩn',
-            image: 'https://images.unsplash.com/photo-1556228578-8c89e6adf883?w=200&h=200&fit=crop'
-        },
-        {
-            id: 4,
-            name: 'Phấn Phủ (Powder)',
-            type: 'Trang điểm mặt',
-            description: 'Phấn phủ kiềm dầu, tạo lớp nền mịn màng tự nhiên',
-            status: 'Hiển thị',
-            image: 'https://images.unsplash.com/photo-1512496015851-a90fb38ba796?w=200&h=200&fit=crop'
-        },
-        {
-            id: 5,
-            name: 'Dụng Cụ (Tools)',
-            type: 'Phụ kiện',
-            description: 'Cọ trang điểm, bông mút và các dụng cụ làm đẹp',
-            status: 'Hiển thị',
-            image: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=200&h=200&fit=crop'
+    const itemsPerPage = 10;
+
+    useEffect(() => {
+        loadCategories();
+    }, []);
+
+    useEffect(() => {
+        filterCategories();
+    }, [categories, searchTerm, sortOrder]);
+
+    const loadCategories = async () => {
+        try {
+            setLoading(true);
+            setError(null);
+            const data = await categoryService.getAll();
+            setCategories(data);
+        } catch (err) {
+            setError(err.detail || 'Không thể tải danh sách danh mục');
+            console.error('Error loading categories:', err);
+        } finally {
+            setLoading(false);
         }
-    ];
+    };
+
+    const filterCategories = () => {
+        let filtered = [...categories];
+
+        if (searchTerm) {
+            filtered = filtered.filter(cat =>
+                cat.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                cat.description?.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+        }
+
+        if (sortOrder !== 'all') {
+            const statusValue = sortOrder === 'active' ? 1 : 0;
+            filtered = filtered.filter(cat => cat.status === statusValue);
+        }
+
+        setFilteredCategories(filtered);
+        setCurrentPage(1);
+    };
 
     const handleSearch = (e) => {
         setSearchTerm(e.target.value);
@@ -61,10 +67,24 @@ const CategoryPage = () => {
         navigate(`/admin/category/edit/${id}`);
     };
 
-    const handleDelete = (id) => {
+    const handleDelete = async (id) => {
         if (window.confirm('Bạn có chắc chắn muốn xóa danh mục này?')) {
-            console.log('Delete category:', id);
-            // Gọi API xóa ở đây
+            try {
+                await categoryService.delete(id);
+
+                const newTotalItems = filteredCategories.length - 1;
+                const newTotalPages = Math.ceil(newTotalItems / itemsPerPage);
+
+                if (currentPage > newTotalPages && newTotalPages > 0) {
+                    setCurrentPage(newTotalPages);
+                }
+
+                loadCategories();
+                alert('Xóa danh mục thành công!');
+            } catch (err) {
+                alert(err.detail || 'Không thể xóa danh mục');
+                console.error('Error deleting category:', err);
+            }
         }
     };
 
@@ -72,17 +92,57 @@ const CategoryPage = () => {
         navigate('/admin/category/create');
     };
 
+    const handlePageChange = (pageNumber) => {
+        setCurrentPage(pageNumber);
+    };
+
+    const totalItems = filteredCategories.length;
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentItems = filteredCategories.slice(indexOfFirstItem, indexOfLastItem);
+
+    if (loading) {
+        return (
+            <div className="category-page">
+                <Sidebar />
+                <div className="category-page__content">
+                    <div className="category-page__loading">
+                        <Loader size={48} className="category-page__loading-icon" />
+                        <p>Đang tải dữ liệu...</p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="category-page">
+                <Sidebar />
+                <div className="category-page__content">
+                    <div className="category-page__error">
+                        <AlertCircle size={48} className="category-page__error-icon" />
+                        <p>{error}</p>
+                        <button onClick={loadCategories} className="category-page__retry-btn">
+                            Thử lại
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="category-page">
             <Sidebar />
 
             <div className="category-page__content">
-                {/* Header */}
                 <div className="category-page__header">
                     <div className="category-page__header-info">
                         <h1 className="category-page__title">Quản lý danh mục</h1>
                         <p className="category-page__subtitle">
                             Xem, chỉnh sửa và tổ chức danh mục sản phẩm của cửa hàng
+                            {` (${filteredCategories.length} danh mục)`}
                         </p>
                     </div>
                     <button className="category-page__add-btn" onClick={handleAddNew}>
@@ -91,13 +151,12 @@ const CategoryPage = () => {
                     </button>
                 </div>
 
-                {/* Search and Filter */}
                 <div className="category-page__toolbar">
                     <div className="category-page__search">
                         <Search className="category-page__search-icon" size={18} />
                         <input
                             type="text"
-                            placeholder="Tìm kiếm danh mục theo tên, ID..."
+                            placeholder="Tìm kiếm danh mục theo tên, mô tả..."
                             value={searchTerm}
                             onChange={handleSearch}
                             className="category-page__search-input"
@@ -110,7 +169,7 @@ const CategoryPage = () => {
                             onChange={(e) => setSortOrder(e.target.value)}
                         >
                             <option value="all">Tất cả trạng thái</option>
-                            <option value="visible">Hiển thị</option>
+                            <option value="active">Hoạt động</option>
                             <option value="hidden">Ẩn</option>
                         </select>
                         <button className="category-page__filter-btn">
@@ -119,95 +178,89 @@ const CategoryPage = () => {
                     </div>
                 </div>
 
-                {/* Table */}
                 <div className="category-page__table-wrapper">
-                    <table className="category-page__table">
-                        <thead>
-                            <tr>
-                                <th>STT</th>
-                                <th>TÊN DANH MỤC</th>
-                                <th>MÔ TẢ</th>
-                                <th>TRẠNG THÁI</th>
-                                <th>HÀNH ĐỘNG</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {categories.map((category, index) => (
-                                <tr key={category.id} style={{ animationDelay: `${index * 0.05}s` }}>
-                                    <td className="category-page__stt">{index + 1}</td>
-                                    <td>
-                                        <div className="category-page__category-info">
-                                            <div className="category-page__category-icon">
-                                                <img
-                                                    src={category.image}
-                                                    alt={category.name}
-                                                    loading="lazy"
-                                                />
-                                            </div>
-                                            <div>
-                                                <div className="category-page__category-name">
-                                                    {category.name}
-                                                </div>
-                                                <div className="category-page__category-type">
-                                                    {category.type}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <span className="category-page__description">
-                                            {category.description}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <span className={`category-page__status ${category.status === 'Hiển thị'
-                                            ? 'category-page__status--visible'
-                                            : 'category-page__status--hidden'
-                                            }`}>
-                                            {category.status}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <div className="category-page__actions">
-                                            <button
-                                                className="category-page__action-btn category-page__action-btn--edit"
-                                                onClick={() => handleEdit(category.id)}
-                                                title="Chỉnh sửa"
-                                            >
-                                                <Edit2 size={16} />
-                                            </button>
-                                            <button
-                                                className="category-page__action-btn category-page__action-btn--delete"
-                                                onClick={() => handleDelete(category.id)}
-                                                title="Xóa"
-                                            >
-                                                <Trash2 size={16} />
-                                            </button>
-                                        </div>
-                                    </td>
+                    {currentItems.length === 0 ? (
+                        <div className="category-page__empty">
+                            <FolderOpen size={48} className="category-page__empty-icon" />
+                            <p className="category-page__empty-title">Không tìm thấy danh mục nào</p>
+                            <p className="category-page__empty-subtitle">
+                                Thử thay đổi bộ lọc hoặc tìm kiếm với từ khóa khác
+                            </p>
+                        </div>
+                    ) : (
+                        <table className="category-page__table">
+                            <thead>
+                                <tr>
+                                    <th>STT</th>
+                                    <th>TÊN DANH MỤC</th>
+                                    <th>MÔ TẢ</th>
+                                    <th>TRẠNG THÁI</th>
+                                    <th>HÀNH ĐỘNG</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {currentItems.map((category, index) => (
+                                    <tr key={category.id} style={{ animationDelay: `${index * 0.05}s` }}>
+                                        <td className="category-page__stt">
+                                            {indexOfFirstItem + index + 1}
+                                        </td>
+                                        <td>
+                                            <div className="category-page__category-info">
+                                                <div className="category-page__category-icon">
+                                                    <FolderOpen size={24} />
+                                                </div>
+                                                <div>
+                                                    <div className="category-page__category-name">
+                                                        {category.name}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span className="category-page__description">
+                                                {category.description || 'Chưa có mô tả'}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span className={`category-page__status ${category.status === 1
+                                                ? 'category-page__status--active'
+                                                : 'category-page__status--hidden'
+                                                }`}>
+                                                {category.status === 1 ? 'Hoạt động' : 'Ẩn'}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div className="category-page__actions">
+                                                <button
+                                                    className="category-page__action-btn category-page__action-btn--edit"
+                                                    onClick={() => handleEdit(category.id)}
+                                                    title="Chỉnh sửa"
+                                                >
+                                                    <Edit2 size={16} />
+                                                </button>
+                                                <button
+                                                    className="category-page__action-btn category-page__action-btn--delete"
+                                                    onClick={() => handleDelete(category.id)}
+                                                    title="Xóa"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    )}
                 </div>
 
-                {/* Pagination */}
-                <div className="category-page__pagination">
-                    <div className="category-page__pagination-controls">
-                        <button className="category-page__pagination-btn">
-                            &lt; Trước
-                        </button>
-                        <button className="category-page__pagination-btn category-page__pagination-btn--active">
-                            1
-                        </button>
-                        <button className="category-page__pagination-btn">2</button>
-                        <button className="category-page__pagination-btn">3</button>
-                        <span className="category-page__pagination-dots">...</span>
-                        <button className="category-page__pagination-btn">
-                            Sau &gt;
-                        </button>
-                    </div>
-                </div>
+                <Pagination
+                    currentPage={currentPage}
+                    totalItems={totalItems}
+                    itemsPerPage={itemsPerPage}
+                    onPageChange={handlePageChange}
+                    showIfLessThan={4}
+                />
             </div>
         </div>
     );

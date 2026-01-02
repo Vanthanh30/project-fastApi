@@ -1,57 +1,75 @@
 import React, { useState } from 'react';
-import { X, Upload, Image as ImageIcon } from 'lucide-react';
+import { X, AlertCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import Sidebar from '../layout_default/Sidebar';
+import categoryService from '../../../service/categoryService';
 import './category.scss';
 
 const CategoryCreate = () => {
+    const navigate = useNavigate();
     const [formData, setFormData] = useState({
         name: '',
-        parentCategory: '',
         description: '',
-        status: 'visible',
-        image: null
+        status: 1 // Mặc định là Hoạt động
     });
 
-    const [imagePreview, setImagePreview] = useState(null);
-
-    const parentCategories = [
-        { id: 1, name: 'Trang điểm' },
-        { id: 2, name: 'Dưỡng da' },
-        { id: 3, name: 'Phụ kiện' }
-    ];
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
-    };
 
-    const handleImageChange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
+        if (name === 'status') {
             setFormData(prev => ({
                 ...prev,
-                image: file
+                [name]: parseInt(value)
             }));
-
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setImagePreview(reader.result);
-            };
-            reader.readAsDataURL(file);
+        } else {
+            setFormData(prev => ({
+                ...prev,
+                [name]: value
+            }));
         }
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log('Create category:', formData);
-        // Handle API call here
+
+        if (!formData.name.trim()) {
+            setError('Vui lòng nhập tên danh mục');
+            return;
+        }
+
+        try {
+            setLoading(true);
+            setError(null);
+
+            const dataToSubmit = {
+                name: formData.name.trim(),
+                description: formData.description.trim() || null,
+                status: formData.status
+            };
+
+            await categoryService.create(dataToSubmit);
+
+            alert('Tạo danh mục thành công!');
+            navigate('/admin/category');
+        } catch (err) {
+            console.error('Error creating category:', err);
+            setError(err.detail || 'Không thể tạo danh mục. Vui lòng thử lại.');
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleCancel = () => {
-        window.history.back();
+        if (formData.name || formData.description) {
+            if (window.confirm('Bạn có chắc muốn hủy? Dữ liệu chưa lưu sẽ bị mất.')) {
+                navigate('/admin/category');
+            }
+        } else {
+            navigate('/admin/category');
+        }
     };
 
     return (
@@ -61,18 +79,25 @@ const CategoryCreate = () => {
             <div className="category-page__content">
                 <div className="category-form">
                     <div className="category-form__header">
-                        <h1 className="category-form__title">Thông tin danh mục</h1>
+                        <h1 className="category-form__title">Thêm danh mục mới</h1>
                         <button
                             className="category-form__close"
                             onClick={handleCancel}
                             type="button"
+                            disabled={loading}
                         >
                             <X size={20} />
                         </button>
                     </div>
 
+                    {error && (
+                        <div className="category-form__error">
+                            <AlertCircle size={18} />
+                            <span>{error}</span>
+                        </div>
+                    )}
+
                     <form onSubmit={handleSubmit} className="category-form__body">
-                        {/* Tên danh mục */}
                         <div className="category-form__group">
                             <label className="category-form__label">
                                 Tên danh mục <span className="category-form__required">*</span>
@@ -85,66 +110,10 @@ const CategoryCreate = () => {
                                 placeholder="Nhập tên danh mục"
                                 className="category-form__input"
                                 required
+                                disabled={loading}
                             />
                         </div>
 
-                        {/* Danh mục cha */}
-                        <div className="category-form__group">
-                            <label className="category-form__label">
-                                Danh mục cha
-                            </label>
-                            <select
-                                name="parentCategory"
-                                value={formData.parentCategory}
-                                onChange={handleInputChange}
-                                className="category-form__select"
-                            >
-                                <option value="">Chọn danh mục cha</option>
-                                {parentCategories.map(cat => (
-                                    <option key={cat.id} value={cat.id}>
-                                        {cat.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-
-                        {/* Hình ảnh */}
-                        <div className="category-form__group">
-                            <label className="category-form__label">
-                                Hình ảnh danh mục
-                            </label>
-                            <div className="category-form__upload">
-                                <input
-                                    type="file"
-                                    id="image-upload"
-                                    accept="image/*"
-                                    onChange={handleImageChange}
-                                    className="category-form__file-input"
-                                />
-                                <label
-                                    htmlFor="image-upload"
-                                    className="category-form__upload-area"
-                                >
-                                    {imagePreview ? (
-                                        <div className="category-form__preview">
-                                            <img src={imagePreview} alt="Preview" />
-                                            <div className="category-form__preview-overlay">
-                                                <Upload size={24} />
-                                                <span>Thay đổi ảnh</span>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <div className="category-form__upload-placeholder">
-                                            <ImageIcon size={32} />
-                                            <span>Nhấn để tải ảnh lên</span>
-                                            <small>PNG, JPG, GIF (Max 5MB)</small>
-                                        </div>
-                                    )}
-                                </label>
-                            </div>
-                        </div>
-
-                        {/* Mô tả */}
                         <div className="category-form__group">
                             <label className="category-form__label">
                                 Mô tả
@@ -156,10 +125,13 @@ const CategoryCreate = () => {
                                 placeholder="Nhập mô tả danh mục"
                                 className="category-form__textarea"
                                 rows="4"
+                                disabled={loading}
                             />
+                            <small className="category-form__hint">
+                                Mô tả ngắn gọn về danh mục này (tối đa 500 ký tự)
+                            </small>
                         </div>
 
-                        {/* Trạng thái */}
                         <div className="category-form__group">
                             <label className="category-form__label">
                                 Trạng thái
@@ -169,39 +141,45 @@ const CategoryCreate = () => {
                                     <input
                                         type="radio"
                                         name="status"
-                                        value="visible"
-                                        checked={formData.status === 'visible'}
+                                        value="1"
+                                        checked={formData.status === 1}
                                         onChange={handleInputChange}
+                                        disabled={loading}
                                     />
-                                    <span>Hiển thị</span>
+                                    <span>Hoạt động</span>
                                 </label>
-                                <label className="category-form__radio">
+                                <label className="category-form__radio category-form__radio--disabled">
                                     <input
                                         type="radio"
                                         name="status"
-                                        value="hidden"
-                                        checked={formData.status === 'hidden'}
+                                        value="0"
+                                        checked={formData.status === 0}
                                         onChange={handleInputChange}
+                                        disabled={true}
                                     />
                                     <span>Ẩn</span>
                                 </label>
                             </div>
+                            <small className="category-form__hint">
+                                Danh mục mới sẽ được tạo với trạng thái Hoạt động
+                            </small>
                         </div>
 
-                        {/* Buttons */}
                         <div className="category-form__actions">
                             <button
                                 type="button"
                                 onClick={handleCancel}
                                 className="category-form__btn category-form__btn--cancel"
+                                disabled={loading}
                             >
                                 Hủy
                             </button>
                             <button
                                 type="submit"
                                 className="category-form__btn category-form__btn--submit"
+                                disabled={loading}
                             >
-                                Thêm
+                                {loading ? 'Đang tạo...' : 'Tạo danh mục'}
                             </button>
                         </div>
                     </form>

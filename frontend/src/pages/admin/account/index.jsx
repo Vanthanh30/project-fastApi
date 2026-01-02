@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Edit2, Trash2, Plus, MoreVertical, User, Users, Inbox, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import Sidebar from '../layout_default/sidebar';
+import Sidebar from '../layout_default/Sidebar';
 import Pagination from '../../../components/Pagination/Pagination';
 import './account.scss';
 import accountService from '../../../service/accountService';
