@@ -38,7 +38,7 @@ def register_user(data: RegisterRequest, db: Session = Depends(get_db)):
     db.refresh(user)
 
 
-    token = create_access_token(user.id)
+    token = create_access_token(user.id, user.role_id)
 
     return {
         "access_token": token,
@@ -62,7 +62,7 @@ def login_user(data: LoginRequest, db: Session = Depends(get_db)):
             detail="Invalid email or password"
         )
 
-    token = create_access_token(user.id)
+    token = create_access_token(user.id, user.role_id)
 
     return {
         "access_token": token,
