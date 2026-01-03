@@ -51,11 +51,11 @@ const Login = () => {
   };
 
   const handleGoogleLogin = () => {
-    console.log("Google login");
+    window.location.href = "http://localhost:8000/auth/google";
   };
 
   const handleFacebookLogin = () => {
-    console.log("Facebook login");
+    window.location.href = "http://localhost:8000/auth/facebook";
   };
   const [showPassword, setShowPassword] = useState(false);
   return (
