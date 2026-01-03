@@ -1,4 +1,6 @@
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel,EmailStr
+from typing import Optional
+
 class LoginRequest(BaseModel):
     email: str
     password: str
@@ -11,5 +13,7 @@ class TokenPayload(BaseModel):
     user_id: int
     role: str
     exp: int
-
-    
+class RegisterRequest(BaseModel):
+    name: str
+    email: EmailStr
+    password: str
