@@ -63,9 +63,9 @@ def add_to_cart(
         )
         db.add(item)
 
-    db.commit()  # commit item trước
+    db.commit()
 
-    total = calculate_cart_total(cart.id, db)  # cập nhật tổng tiền
+    total = calculate_cart_total(cart.id, db)  
 
     return {
         "message": "Added to cart successfully",
@@ -88,7 +88,7 @@ def update_cart_item(
         raise HTTPException(404, "Cart item not found")
 
     item.quantity = data.quantity
-    db.commit()  # commit quantity mới
+    db.commit()  
 
     total = calculate_cart_total(item.cart_id, db)
 

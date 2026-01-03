@@ -10,6 +10,7 @@ from app.routers.auth_user import router as auth_user_router
 from app.routers.cart import router as cart_router 
 import app.models.category
 import app.models.product
+from app.routers.order import router as order_router
 
 load_dotenv()
 
@@ -30,8 +31,9 @@ Base.metadata.create_all(bind=engine)
 app.include_router(auth_google_router)
 app.include_router(auth_facebook_router)
 app.include_router(auth_user_router)
-
 app.include_router(cart_router) 
+app.include_router(order_router)
+
 
 @app.get("/")
 async def root():
