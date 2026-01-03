@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import Sidebar from '../layout_default/Sidebar';
 import Pagination from '../../../components/Pagination/Pagination';
 import CategoryFilter from '../../../components/CategoryFilter/CategoryFilter';
-import categoryService from '../../../service/categoryService';
+import categoryService from '../../../service/admin/categoryService';
 import './category.scss';
 
 const CategoryPage = () => {

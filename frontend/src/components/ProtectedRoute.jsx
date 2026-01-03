@@ -1,6 +1,6 @@
 import React, { memo } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import adminService from '../service/authService';
+import adminService from '../service/admin/authService';
 
 const ProtectedRoute = memo(({ children }) => {
     const location = useLocation();

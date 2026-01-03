@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { LayoutDashboard, Package, ShoppingBag, Wallet, FolderOpen, User, LogOut } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import './Sidebar.scss';
-import authService from '../../../service/authService';
+import authService from '../../../service//admin/authService';
 
 const Sidebar = () => {
     const navigate = useNavigate();

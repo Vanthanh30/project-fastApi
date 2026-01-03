@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { X, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../layout_default/Sidebar';
-import categoryService from '../../../service/categoryService';
+import categoryService from '../../../service/admin/categoryService';
 import './category.scss';
 
 const CategoryCreate = () => {

@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import Sidebar from '../layout_default/Sidebar';
 import Pagination from '../../../components/Pagination/Pagination';
 import './account.scss';
-import accountService from '../../../service/accountService';
+import accountService from '../../../service/admin/accountService';
 
 const AccountPage = () => {
     const navigate = useNavigate();
