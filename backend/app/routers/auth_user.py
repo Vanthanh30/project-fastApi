@@ -6,13 +6,16 @@ from app.models.user import User
 from app.schemas.auth import (
     RegisterRequest,
     LoginRequest,
-    TokenResponse
+    TokenResponse,
+    UserResponse
 )
 from app.core.security import (
     hash_password,
     verify_password,
     create_access_token
 )
+
+from app.middleware.authenticate import authenticate
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
@@ -38,7 +41,7 @@ def register_user(data: RegisterRequest, db: Session = Depends(get_db)):
     db.refresh(user)
 
 
-    token = create_access_token(user.id, user.role_id)
+    token = create_access_token(user.id, role="user")
 
     return {
         "access_token": token,
@@ -62,9 +65,13 @@ def login_user(data: LoginRequest, db: Session = Depends(get_db)):
             detail="Invalid email or password"
         )
 
-    token = create_access_token(user.id, user.role_id)
+    token = create_access_token(user.id, role="user")
 
     return {
         "access_token": token,
         "token_type": "bearer"
     }
+
+@router.get("/me", response_model=UserResponse)
+def read_users_me(current_user: User = Depends(authenticate)):
+    return current_user
