@@ -25,8 +25,6 @@ const EditProduct = () => {
     brand: "",
     image: "",
   });
-
-  // Load dữ liệu sản phẩm và categories từ API
   useEffect(() => {
     loadProduct();
     loadCategories();
@@ -56,8 +54,6 @@ const EditProduct = () => {
         brand: data.brand || "",
         image: data.image || "",
       });
-
-      // Set image preview nếu có ảnh cũ
       if (data.image) {
         setImagePreview(ProductService.getImageUrl(data.image));
       }
@@ -78,8 +74,6 @@ const EditProduct = () => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       setImageFile(file);
-
-      // Tạo preview
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result);
@@ -117,33 +111,16 @@ const EditProduct = () => {
 
     try {
       setLoading(true);
-
-      let imageUrl = formData.image;
-
-      // Upload ảnh mới nếu có
-      if (imageFile) {
-        try {
-          imageUrl = await ProductService.uploadImage(imageFile);
-        } catch (error) {
-          console.error("Error uploading image:", error);
-          alert("Lỗi khi upload ảnh, giữ ảnh cũ");
-          // Giữ ảnh cũ nếu upload thất bại
-        }
-      }
-
-      // Chuẩn bị dữ liệu update
       const updateData = {
         name: formData.name.trim(),
-        description: formData.description.trim() || null,
+        description: formData.description.trim() || "",
         price: parseFloat(formData.price),
         quantity: parseInt(formData.quantity),
         category_id: parseInt(formData.category_id),
         status: parseInt(formData.status),
         brand: formData.brand.trim(),
-        image: imageUrl || null,
       };
-
-      await ProductService.updateProduct(id, updateData);
+      await ProductService.updateProduct(id, updateData, imageFile);
       alert("Cập nhật sản phẩm thành công!");
       navigate("/admin/product");
     } catch (error) {
@@ -169,7 +146,6 @@ const EditProduct = () => {
       <Sidebar />
 
       <div className="create-product-page__content">
-        {/* Header */}
         <div className="create-product-page__header">
           <div
             className="create-product-page__back-link"
@@ -180,10 +156,7 @@ const EditProduct = () => {
           </div>
           <h1 className="create-product-page__title">Chỉnh sửa sản phẩm</h1>
         </div>
-
-        {/* Form Card */}
         <div className="create-product-page__form-card">
-          {/* Thông tin sản phẩm */}
           <div className="create-product-page__form-group">
             <span className="create-product-page__section-title">
               Thông tin sản phẩm
@@ -226,8 +199,6 @@ const EditProduct = () => {
               onChange={handleChange}
             ></textarea>
           </div>
-
-          {/* Hình ảnh */}
           <div className="create-product-page__form-group">
             <label className="create-product-page__label">Hình ảnh</label>
 
@@ -282,8 +253,6 @@ const EditProduct = () => {
               </span>
             </div>
           </div>
-
-          {/* Giá & Số lượng */}
           <div className="create-product-page__form-group">
             <label className="create-product-page__section-title">
               Giá & Số lượng
@@ -318,8 +287,6 @@ const EditProduct = () => {
               </div>
             </div>
           </div>
-
-          {/* Danh mục & Trạng thái */}
           <div className="create-product-page__row-2 create-product-page__form-group">
             <div>
               <label className="create-product-page__label">Danh mục(*)</label>
@@ -398,8 +365,6 @@ const EditProduct = () => {
             </div>
           </div>
         </div>
-
-        {/* Footer Actions */}
         <div className="create-product-page__bottom-actions">
           <button
             type="button"

@@ -3,7 +3,7 @@ import { Edit2, Trash2, Plus, Loader, FolderOpen, AlertCircle } from 'lucide-rea
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../layout_default/Sidebar';
 import Pagination from '../../../components/Pagination/Pagination';
-import CategoryFilter from '../../../components/CategoryFilter/CategoryFilter';
+import CategoryFilter from '../../../components/Filter/CategoryFilter';
 import categoryService from '../../../service/admin/categoryService';
 import './category.scss';
 

@@ -12,6 +12,7 @@ class ProductCreate(BaseModel):
     brand: str = Field(..., min_length=1)
     quantity: int = Field(..., gt=0)
     status: int = Field(...)
+    
     @classmethod
     def as_form(
         cls,
@@ -41,6 +42,7 @@ class ProductUpdate(BaseModel):
     brand: Optional[str] = None
     quantity: Optional[int] = Field(None, gt=0)
     status: Optional[int] = None
+    
     @classmethod
     def as_form(
         cls,
@@ -61,9 +63,16 @@ class ProductUpdate(BaseModel):
             quantity=quantity,
             status=status,
         )
+class CategoryResponse(BaseModel):
+    id: int
+    name: str
+    
+    class Config:
+        from_attributes = True
 class ProductResponse(ProductCreate):
     id: int
     image: str | None = None
+    category: Optional[CategoryResponse] = None
 
     class Config:
         from_attributes = True

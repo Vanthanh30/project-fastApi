@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { Search, Edit2, Trash2, Plus } from "lucide-react";
+import { Edit2, Trash2, Plus, Loader, Package, AlertCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../layout_default/Sidebar";
+import Pagination from "../../../components/Pagination/Pagination";
+import ProductFilter from "../../../components/Filter/Productfilter";
 import ProductService from "../../../service/admin/productService";
+import categoryService from "../../../service/admin/categoryService";
 import "./product.scss";
 
 const ProductPage = () => {
@@ -11,38 +14,107 @@ const ProductPage = () => {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [products, setProducts] = useState([]);
+  const [filteredProducts, setFilteredProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Load products từ API
+  const itemsPerPage = 10;
+
   useEffect(() => {
-    loadProducts();
+    loadData();
   }, []);
 
-  const loadProducts = async () => {
+  useEffect(() => {
+    filterProducts();
+  }, [products, searchTerm, selectedCategory, statusFilter]);
+
+  const loadData = async () => {
     try {
       setLoading(true);
-      const data = await ProductService.getAllProducts();
-      setProducts(data);
       setError(null);
+      const [productsData, categoriesData] = await Promise.all([
+        ProductService.getAllProducts(),
+        categoryService.getAll()
+      ]);
+      setProducts(productsData);
+      setCategories(categoriesData);
     } catch (err) {
-      setError(err.message);
-      console.error("Error loading products:", err);
+      setError(err.message || "Không thể tải dữ liệu");
+      console.error("Error loading data:", err);
     } finally {
       setLoading(false);
     }
+  };
+
+  const filterProducts = () => {
+    let filtered = [...products];
+
+    // Filter by search term
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase().trim();
+      filtered = filtered.filter((product) => {
+        const name = product.name?.toLowerCase().trim() || "";
+        const brand = product.brand?.toLowerCase().trim() || "";
+        const id = product.id?.toString() || "";
+
+        return (
+          name.includes(searchLower) ||
+          brand.includes(searchLower) ||
+          id.includes(searchLower)
+        );
+      });
+    }
+
+    // Filter by category
+    if (selectedCategory !== "all") {
+      filtered = filtered.filter(
+        (product) => product.category?.name === selectedCategory
+      );
+    }
+
+    // Filter by status
+    if (statusFilter !== "all") {
+      filtered = filtered.filter(
+        (product) => product.status.toString() === statusFilter
+      );
+    }
+
+    setFilteredProducts(filtered);
+    setCurrentPage(1);
+  };
+
+  const handleSearch = (e) => {
+    setSearchTerm(e.target.value);
+  };
+
+  const handleCategoryChange = (e) => {
+    setSelectedCategory(e.target.value);
   };
 
   const handleDelete = async (productId) => {
     if (window.confirm("Bạn có chắc chắn muốn xóa sản phẩm này?")) {
       try {
         await ProductService.deleteProduct(productId);
+
+        const newTotalItems = filteredProducts.length - 1;
+        const newTotalPages = Math.ceil(newTotalItems / itemsPerPage);
+
+        if (currentPage > newTotalPages && newTotalPages > 0) {
+          setCurrentPage(newTotalPages);
+        }
+
+        loadData();
         alert("Xóa sản phẩm thành công!");
-        loadProducts(); // Reload danh sách
       } catch (err) {
         alert(`Lỗi: ${err.message}`);
       }
     }
+  };
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
   };
 
   const formatPrice = (price) => {
@@ -84,28 +156,21 @@ const ProductPage = () => {
     return "product-page__progress-fill--high";
   };
 
-  // Filter products
-  const filteredProducts = products.filter((product) => {
-    const matchSearch =
-      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.id.toString().includes(searchTerm);
-
-    const matchCategory =
-      selectedCategory === "all" ||
-      product.category?.name === selectedCategory;
-
-    const matchStatus =
-      statusFilter === "all" || product.status.toString() === statusFilter;
-
-    return matchSearch && matchCategory && matchStatus;
-  });
+  // Pagination logic
+  const totalItems = filteredProducts.length;
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredProducts.slice(indexOfFirstItem, indexOfLastItem);
 
   if (loading) {
     return (
       <div className="product-page">
         <Sidebar />
         <div className="product-page__content">
-          <p>Đang tải...</p>
+          <div className="product-page__loading">
+            <Loader size={48} className="product-page__loading-icon" />
+            <p>Đang tải dữ liệu...</p>
+          </div>
         </div>
       </div>
     );
@@ -116,8 +181,13 @@ const ProductPage = () => {
       <div className="product-page">
         <Sidebar />
         <div className="product-page__content">
-          <p style={{ color: "red" }}>Lỗi: {error}</p>
-          <button onClick={loadProducts}>Thử lại</button>
+          <div className="product-page__error">
+            <AlertCircle size={48} className="product-page__error-icon" />
+            <p>{error}</p>
+            <button onClick={loadData} className="product-page__retry-btn">
+              Thử lại
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -133,8 +203,8 @@ const ProductPage = () => {
           <div className="product-page__header-info">
             <h1 className="product-page__title">Quản lý sản phẩm</h1>
             <p className="product-page__subtitle">
-              Quản lý danh sách, tồn kho và giá cả của các sản phẩm mỹ phẩm cao
-              cấp.
+              Quản lý danh sách, tồn kho và giá cả của các sản phẩm mỹ phẩm cao cấp
+              {` (${filteredProducts.length} sản phẩm)`}
             </p>
           </div>
           <button
@@ -147,29 +217,14 @@ const ProductPage = () => {
           </button>
         </div>
 
-        {/* Toolbar */}
-        <div className="product-page__toolbar">
-          <div className="product-page__search">
-            <Search className="product-page__search-icon" size={18} />
-            <input
-              type="text"
-              placeholder="Tìm kiếm theo tên, ID, hoặc mã SKU..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="product-page__search-input"
-            />
-          </div>
-          <select
-            className="product-page__category-select"
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-          >
-            <option value="all">Tất cả danh mục</option>
-            <option value="Son môi">Son môi</option>
-            <option value="Kem nền">Kem nền</option>
-            <option value="Mắt">Mắt</option>
-          </select>
-        </div>
+        {/* Product Filter */}
+        <ProductFilter
+          searchTerm={searchTerm}
+          onSearchChange={handleSearch}
+          selectedCategory={selectedCategory}
+          onCategoryChange={handleCategoryChange}
+          categories={categories}
+        />
 
         {/* Status Tabs */}
         <div className="product-page__tabs">
@@ -209,113 +264,129 @@ const ProductPage = () => {
 
         {/* Table */}
         <div className="product-page__table-wrapper">
-          <table className="product-page__table">
-            <thead>
-              <tr>
-                <th style={{ textAlign: "center", width: "50px" }}>STT</th>
-                <th>Sản phẩm</th>
-                <th>Danh mục</th>
-                <th>Giá</th>
-                <th>Tồn kho</th>
-                <th>Trạng thái</th>
-                <th>Hành động</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredProducts.map((product, index) => (
-                <tr
-                  key={product.id}
-                  style={{ animationDelay: `${index * 0.05}s` }}
-                >
-                  <td className="product-page__stt">{index + 1}</td>
-                  <td>
-                    <div className="product-page__product-info">
-                      <img
-                        src={ProductService.getImageUrl(product.image)}
-                        alt={product.name}
-                        className="product-page__product-img"
-                        loading="lazy"
-                        onError={(e) => {
-                          e.target.src = "https://via.placeholder.com/100";
-                        }}
-                      />
-                      <div className="product-page__product-detail">
-                        <span className="product-page__product-name">
-                          {product.name}
-                        </span>
-                        <span className="product-page__product-variant">
-                          {product.brand || "N/A"}
-                        </span>
-                      </div>
-                    </div>
-                  </td>
-                  <td>{product.category?.name || "N/A"}</td>
-                  <td>
-                    <span className="product-page__price">
-                      {formatPrice(product.price)}
-                    </span>
-                  </td>
-                  <td>
-                    <div className="product-page__stock-wrapper">
-                      <span className="product-page__stock-number">
-                        {product.quantity}
-                      </span>
-                      <div className="product-page__progress-bg">
-                        <div
-                          className={`product-page__progress-fill ${getStockLevelClass(
-                            product.quantity
-                          )}`}
-                          style={{
-                            width: `${Math.min(
-                              (product.quantity / 100) * 100,
-                              100
-                            )}%`,
-                          }}
-                        ></div>
-                      </div>
-                    </div>
-                  </td>
-                  <td>
-                    <span
-                      className={`product-page__status product-page__status--${getStatusClass(
-                        product.status
-                      )}`}
-                    >
-                      {getStatusText(product.status)}
-                    </span>
-                  </td>
-                  <td>
-                    <div className="product-page__actions">
-                      <button
-                        type="button"
-                        className="product-page__action-btn product-page__action-btn--edit"
-                        onClick={() =>
-                          navigate(`/admin/product/edit/${product.id}`)
-                        }
-                      >
-                        <Edit2 size={16} />
-                      </button>
-                      <button
-                        type="button"
-                        className="product-page__action-btn product-page__action-btn--delete"
-                        onClick={() => handleDelete(product.id)}
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </td>
+          {currentItems.length === 0 ? (
+            <div className="product-page__empty">
+              <Package size={48} className="product-page__empty-icon" />
+              <p className="product-page__empty-title">
+                Không tìm thấy sản phẩm nào
+              </p>
+              <p className="product-page__empty-subtitle">
+                Thử tìm kiếm với từ khóa khác hoặc điều chỉnh bộ lọc
+              </p>
+            </div>
+          ) : (
+            <table className="product-page__table">
+              <thead>
+                <tr>
+                  <th style={{ textAlign: "center", width: "50px" }}>STT</th>
+                  <th>Sản phẩm</th>
+                  <th>Danh mục</th>
+                  <th>Giá</th>
+                  <th>Tồn kho</th>
+                  <th>Trạng thái</th>
+                  <th>Hành động</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {currentItems.map((product, index) => (
+                  <tr
+                    key={product.id}
+                    style={{ animationDelay: `${index * 0.05}s` }}
+                  >
+                    <td className="product-page__stt">
+                      {indexOfFirstItem + index + 1}
+                    </td>
+                    <td>
+                      <div className="product-page__product-info">
+                        <img
+                          src={ProductService.getImageUrl(product.image)}
+                          alt={product.name}
+                          className="product-page__product-img"
+                          loading="lazy"
+                          onError={(e) => {
+                            e.target.src = "https://via.placeholder.com/100";
+                          }}
+                        />
+                        <div className="product-page__product-detail">
+                          <span className="product-page__product-name">
+                            {product.name}
+                          </span>
+                          <span className="product-page__product-variant">
+                            {product.brand || "N/A"}
+                          </span>
+                        </div>
+                      </div>
+                    </td>
+                    <td>{product.category?.name || "N/A"}</td>
+                    <td>
+                      <span className="product-page__price">
+                        {formatPrice(product.price)}
+                      </span>
+                    </td>
+                    <td>
+                      <div className="product-page__stock-wrapper">
+                        <span className="product-page__stock-number">
+                          {product.quantity}
+                        </span>
+                        <div className="product-page__progress-bg">
+                          <div
+                            className={`product-page__progress-fill ${getStockLevelClass(
+                              product.quantity
+                            )}`}
+                            style={{
+                              width: `${Math.min(
+                                (product.quantity / 100) * 100,
+                                100
+                              )}%`,
+                            }}
+                          ></div>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <span
+                        className={`product-page__status product-page__status--${getStatusClass(
+                          product.status
+                        )}`}
+                      >
+                        {getStatusText(product.status)}
+                      </span>
+                    </td>
+                    <td>
+                      <div className="product-page__actions">
+                        <button
+                          type="button"
+                          className="product-page__action-btn product-page__action-btn--edit"
+                          onClick={() =>
+                            navigate(`/admin/product/edit/${product.id}`)
+                          }
+                        >
+                          <Edit2 size={16} />
+                        </button>
+                        <button
+                          type="button"
+                          className="product-page__action-btn product-page__action-btn--delete"
+                          onClick={() => handleDelete(product.id)}
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
 
         {/* Pagination */}
-        <div className="product-page__pagination">
-          <div className="product-page__pagination-info">
-            Hiển thị {filteredProducts.length} sản phẩm
-          </div>
-        </div>
+        <Pagination
+          currentPage={currentPage}
+          totalItems={totalItems}
+          itemsPerPage={itemsPerPage}
+          onPageChange={handlePageChange}
+          showIfLessThan={4}
+        />
       </div>
     </div>
   );
