@@ -1,5 +1,6 @@
 from sqlalchemy import Column, Integer, String, DateTime
 from datetime import datetime
+from sqlalchemy.orm import relationship
 from app.models.base_model import BaseModel
 
 class Category(BaseModel):
@@ -11,3 +12,5 @@ class Category(BaseModel):
     status = Column(Integer, default=1)  # 1: active, 0: inactive
     created_at: datetime = Column(DateTime, index=True, default=datetime.now)
     updated_at: datetime = Column(DateTime, index=True, default=datetime.now)
+    # Quan hệ 1-N (Category → Products)
+    products = relationship("Product",back_populates="category")
