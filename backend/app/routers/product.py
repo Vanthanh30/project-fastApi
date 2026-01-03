@@ -35,11 +35,17 @@ async def create_product (
     return product
 @router.get("/", response_model=list[ProductResponse])
 def get_all_products(db:Session = Depends(get_db)):
-    products = db.query(Product).filter(Product.deleted_at.is_(None)).all() 
+    products = db.query(Product)\
+        .options(joinedload(Product.category))\
+        .filter(Product.deleted_at.is_(None))\
+        .all()
     return products
 @router.get("/{product_id}", response_model=ProductResponse)
 def get_product_by_id(product_id: int, db: Session = Depends(get_db)):
-    product = db.query(Product).filter(Product.id == product_id, Product.deleted_at.is_(None)).first()
+    product = db.query(Product)\
+    .options(joinedload(Product.category))\
+    .filter(Product.id == product_id, Product.deleted_at.is_(None))\
+    .first()
 
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
