@@ -1,80 +1,99 @@
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 from openai import OpenAI
-from app.core.config import settings
+
 from app.models.product import Product
+from app.schemas.chatbot import ChatResponse
+from app.core.config import settings
 from app.models.category import Category
 
 client = OpenAI(api_key=settings.OPENAI_API_KEY)
 
-def handle_chat(message: str, db: Session):
-    # 🔹 Lấy danh sách sản phẩm đang bán
-    products = (
-        db.query(Product)
-        .join(Category, Product.category_id == Category.id)
-        .filter(
-            Product.status == 1,
-            Product.deleted_at.is_(None)
-        )
-        .limit(6)
+
+def handle_chat(message: str, db: Session) -> ChatResponse:
+    msg = message.lower()
+
+    categories = (
+        db.query(Category)
+        .filter(Category.status == 1)
         .all()
     )
 
-    # Nếu DB chưa có sản phẩm
-    if not products:
-        return {
-            "reply": "😔 Hiện tại shop chưa có sản phẩm để tư vấn. Bạn quay lại sau nhé!",
-            "products": []
-        }
+    query = db.query(Product).join(Category)
 
-    # 🔹 Chuẩn bị dữ liệu sản phẩm cho AI
+    # 1️⃣ Match category phrase động
+    matched_category = None
+    for c in categories:
+        if c.name.lower() in msg:
+            matched_category = c
+            break
+
+    if matched_category:
+        products = (
+            query
+            .filter(Product.category_id == matched_category.id)
+            .limit(6)
+            .all()
+        )
+    else:
+        # 2️⃣ fallback keyword search
+        keywords = msg.split()
+        conditions = []
+        for kw in keywords:
+            if len(kw) < 3:
+                continue
+            like = f"%{kw}%"
+            conditions.extend([
+                Product.name.ilike(like),
+                Product.brand.ilike(like),
+                Product.description.ilike(like),
+                Category.name.ilike(like),
+            ])
+
+        if conditions:
+            query = query.filter(or_(*conditions))
+
+        products = query.limit(6).all()
+
+    if not products:
+        return ChatResponse(
+            reply="😊 Bạn có thể cho mình biết rõ hơn nhu cầu để mình tư vấn chính xác hơn nha!"
+        )
+
+    # 🔹 Chuẩn bị context
     product_context = "\n".join([
-        f"- {p.name} | Loại: {p.category.name if p.category else 'Không rõ'} | "
-        f"Giá: {p.price}đ | Thương hiệu: {p.brand or 'Không rõ'} | "
+        f"- {p.name} | Giá: {int(p.price):,}đ | "
+        f"Thương hiệu: {p.brand or 'Không rõ'} | "
         f"Mô tả: {p.description or 'Đang cập nhật'}"
         for p in products
     ])
 
-    # 🔥 PROMPT TMĐT – CHỈ TƯ VẤN SẢN PHẨM
     prompt = f"""
-Bạn là nhân viên tư vấn sản phẩm cho website thương mại điện tử.
+Bạn là chatbot tư vấn cho website bán mỹ phẩm.
 
-NGUYÊN TẮC:
-- Trả lời thân thiện, tự nhiên, giống nhân viên bán hàng.
-- KHÔNG bịa sản phẩm, giá, thương hiệu.
-- CHỈ sử dụng thông tin sản phẩm được cung cấp.
-- Nếu khách hỏi chung chung → hỏi lại để làm rõ.
-- Nếu khách hỏi theo LOẠI → liệt kê các sản phẩm phù hợp.
-- Nếu khách hỏi SẢN PHẨM CỤ THỂ → mô tả chi tiết sản phẩm đó.
-- Không tư vấn đơn hàng, không nhắc đến thanh toán.
+Yêu cầu:
+- Trả lời tự nhiên, thân thiện như nhân viên tư vấn
+- Nếu khách hỏi chung chung → hỏi lại nhu cầu
+- Nếu khách hỏi theo loại → gợi ý đúng sản phẩm
+- KHÔNG bịa giá, KHÔNG bịa thông tin
 
-CÂU HỎI KHÁCH HÀNG:
+CÂU HỎI KHÁCH:
 "{message}"
 
-DANH SÁCH SẢN PHẨM HIỆN CÓ:
+DANH SÁCH SẢN PHẨM:
 {product_context}
 
-YÊU CẦU TRẢ LỜI:
-- Tiếng Việt
-- Ngắn gọn, dễ hiểu
-- Có thể hỏi thêm để tư vấn tốt hơn
+Cách trả lời:
+- Xưng hô "bạn"
+- Có emoji nhẹ 😊
+- Tối đa 4–6 câu
 """
 
     completion = client.responses.create(
-        model=settings.OPENAI_MODEL,
+        model="gpt-4.1-mini",
         input=prompt
     )
 
-    return {
-        "reply": completion.output_text,
-        "products": [
-            {
-                "id": p.id,
-                "name": p.name,
-                "price": p.price,
-                "brand": p.brand,
-                "category": p.category.name if p.category else None
-            } for p in products
-        ]
-    }
-
-
+    return ChatResponse(
+        reply=completion.output_text
+    )

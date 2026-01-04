@@ -3,6 +3,8 @@ import { X, Maximize2, Minimize2, Sparkles } from 'lucide-react';
 import ChatMessage from './ChatMessage';
 import ChatInput from './ChatInput';
 import './chatbox.scss';
+import axios from 'axios';
+
 
 const ChatboxAI = () => {
     const [isOpen, setIsOpen] = useState(false);
@@ -32,38 +34,48 @@ const ChatboxAI = () => {
         scrollToBottom();
     }, [messages]);
 
-    const handleSendMessage = (inputValue) => {
-        if (inputValue.trim() === '') return;
+    const handleSendMessage = async (inputValue) => {
+        if (!inputValue.trim()) return;
 
         const userMessage = {
-            id: messages.length + 1,
+            id: Date.now(),
             type: 'user',
             text: inputValue,
             timestamp: new Date()
         };
 
-        setMessages([...messages, userMessage]);
+        setMessages(prev => [...prev, userMessage]);
         setIsTyping(true);
-        setTimeout(() => {
-            const responses = [
-                'Cảm ơn bạn đã quan tâm! Để tôi tìm sản phẩm phù hợp nhất cho bạn. Bạn có thể cho tôi biết thêm về loại da và phong cách trang điểm yêu thích không?',
-                'Tuyệt vời! Chúng tôi có nhiều sản phẩm cao cấp phù hợp với nhu cầu của bạn. Bạn muốn xem thêm chi tiết về sản phẩm nào?',
-                'Đây là một lựa chọn tuyệt vời! Sản phẩm này được nhiều khách hàng yêu thích. Tôi có thể gợi ý thêm một số sản phẩm bổ sung để lớp trang điểm hoàn hảo hơn.',
-                'Rất vui được hỗ trợ bạn! Bạn có thể xem thêm các sản phẩm tương tự trong bộ sưu tập của chúng tôi. Bạn cần tư vấn thêm về cách sử dụng không?'
-            ];
 
-            const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+        try {
+            const res = await axios.post('http://localhost:8000/chatbot/chat', {
+                message: inputValue
+            });
 
             const botMessage = {
-                id: messages.length + 2,
+                id: Date.now() + 1,
                 type: 'bot',
-                text: randomResponse,
+                text: res.data.reply,
+                products: res.data.products, // 👈 QUAN TRỌNG
                 timestamp: new Date()
             };
+
             setMessages(prev => [...prev, botMessage]);
+        } catch (err) {
+            setMessages(prev => [
+                ...prev,
+                {
+                    id: Date.now() + 2,
+                    type: 'bot',
+                    text: 'Xin lỗi, hệ thống đang gặp sự cố. Bạn thử lại sau nhé!',
+                    timestamp: new Date()
+                }
+            ]);
+        } finally {
             setIsTyping(false);
-        }, 1500);
+        }
     };
+
 
     const toggleFullscreen = () => {
         setIsFullscreen(!isFullscreen);
