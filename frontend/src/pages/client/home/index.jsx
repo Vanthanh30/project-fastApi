@@ -1,5 +1,6 @@
 import React from 'react';
 import LayoutDefault from '../layout_default/layout_default';
+import ChatboxAI from '../../../components/Chatbox/ChatboxAI';
 import './home.scss';
 
 const Home = () => {
@@ -154,6 +155,7 @@ const Home = () => {
                     </div>
                 </section>
             </div>
+            <ChatboxAI />
         </LayoutDefault>
     );
 };

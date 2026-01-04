@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ChevronDown, ChevronRight, X } from 'lucide-react';
 import LayoutDefault from '../layout_default/layout_default';
+import ChatboxAI from '../../../components/Chatbox/ChatboxAI';
 import './collection.scss';
 
 const Collection = () => {
@@ -312,6 +313,7 @@ const Collection = () => {
                     </main>
                 </div>
             </div>
+            <ChatboxAI />
         </LayoutDefault>
     );
 };

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import LayoutDefault from '../layout_default/layout_default';
+import ChatboxAI from '../../../components/Chatbox/ChatboxAI';
 import './product_detail.scss';
 
 const ProductDetail = () => {
@@ -336,6 +337,7 @@ const ProductDetail = () => {
                     </section>
                 </div>
             </div>
+            <ChatboxAI />
         </LayoutDefault>
     );
 };
