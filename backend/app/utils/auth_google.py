@@ -9,7 +9,8 @@ def get_or_create_google_user(db: Session, user_info: dict) -> User:
         user = User(
             email=email,
             name=user_info.get("name"),
-            password=None
+            password=None,
+            role_id=2,
         )
         db.add(user)
         db.commit()
