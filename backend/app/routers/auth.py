@@ -7,9 +7,9 @@ from app.models.user import User
 from app.core.security import verify_password, create_access_token
 from app.middleware.authenticate import authenticate
 
-router = APIRouter(prefix="/admin", tags=["ADMIN"])
+router = APIRouter(prefix="/auth", tags=["Auth"])
 
-@router.post("/login", response_model=TokenResponse)
+@router.post("/admin/login", response_model=TokenResponse)
 def admin_login(data: LoginRequest, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == data.email).first()
 
@@ -27,7 +27,7 @@ def admin_login(data: LoginRequest, db: Session = Depends(get_db)):
 
     token = create_access_token(user.id, user.role.name)
     return {"access_token": token}
-@router.post("/logout")
+@router.post("/admin/logout")
 def logout(user=Depends(authenticate)):
     return {
         "message": "Logout successfully"
