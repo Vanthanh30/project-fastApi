@@ -20,6 +20,7 @@ def get_cart(db: Session = Depends(get_db), user=Depends(authenticate)):
     for item in cart.items:
         items.append(
             CartItemResponse(
+                id=item.id, 
                 product_id=item.product.id,
                 name=item.product.name,
                 price=float(item.product.price),

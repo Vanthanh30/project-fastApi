@@ -1,78 +1,76 @@
-import React, { useState } from 'react';
-import { ShieldCheck } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import LayoutDefault from '../layout_default/layout_default';
-import './cart.scss';
+import React, { useEffect, useState } from "react";
+import { ShieldCheck } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import LayoutDefault from "../layout_default/layout_default";
+import cartService from "../../../service/cartService";
+import "./cart.scss";
 
 const Cart = () => {
-    const [cartItems, setCartItems] = useState([
-        {
-            id: 1,
-            name: 'VELVET MATTE LIPSTICK',
-            category: 'Son Thỏi Cao Cấp',
-            color: 'Màu Nude Quyến Rũ',
-            price: 950000,
-            quantity: 1,
-            image: '/products/lipstick.jpg'
-        },
-        {
-            id: 2,
-            name: 'AMBIENT SOFT GLOW FOUNDATION',
-            category: 'Kem Nền',
-            color: 'Màu Tự Nhiên',
-            price: 1200000,
-            quantity: 1,
-            image: '/products/foundation.jpg'
-        }
-    ]);
-
-    const recommendedProducts = [
-        {
-            id: 1,
-            name: 'Ambient Lighting Palette',
-            price: '1,650,000₫',
-            image: '/products/palette.jpg'
-        },
-        {
-            id: 2,
-            name: 'Unlocked Mascara',
-            price: '695,000₫',
-            image: '/products/mascara.jpg'
-        },
-        {
-            id: 3,
-            name: 'Sublime Flush Blush',
-            price: '1,100,000₫',
-            image: '/products/blush.jpg'
-        }
-    ];
-
-    const paymentMethods = [
-        { name: 'Visa', url: 'https://www.visa.com.vn/', image: '../src/assets/payment1.jpg' },
-        { name: 'Amex', url: 'https://www.mastercard.com.vn/', image: '../src/assets/payment3.jpg' },
-        { name: 'Napas', url: 'https://www.paypal.com/', image: '../src/assets/payment4.jpg' },
-        { name: 'Momo', url: 'https://momo.vn/', image: '../src/assets/payment2.jpg' }
-    ];
-
-    const updateQuantity = (id, delta) => {
-        setCartItems(cartItems.map(item => {
-            if (item.id === id) {
-                const newQuantity = Math.max(1, item.quantity + delta);
-                return { ...item, quantity: newQuantity };
-            }
-            return item;
-        }));
-    };
-
-    const removeItem = (id) => {
-        setCartItems(cartItems.filter(item => item.id !== id));
-    };
-
-    const formatPrice = (price) => {
-        return price.toLocaleString('vi-VN') + '₫';
-    };
+    const [cartItems, setCartItems] = useState([]);
+    const [selectedIds, setSelectedIds] = useState([]);
     const navigate = useNavigate();
-    const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+    /* ================= FETCH CART ================= */
+    useEffect(() => {
+        fetchCart();
+    }, []);
+
+    const fetchCart = async () => {
+        try {
+            const res = await cartService.getCart();
+            setCartItems(Array.isArray(res.items) ? res.items : []);
+        } catch (error) {
+            console.error("Fetch cart failed:", error);
+            setCartItems([]);
+        }
+    };
+
+    const toggleSelectItem = (id) => {
+    setSelectedIds(prev =>
+        prev.includes(id)
+            ? prev.filter(x => x !== id)
+            : [...prev, id]
+    );
+    };
+
+    const toggleSelectAll = () => {
+        if (selectedIds.length === cartItems.length) {
+            setSelectedIds([]);
+        } else {
+            setSelectedIds(cartItems.map(item => item.id));
+        }
+    };
+
+    /* ================= UPDATE QUANTITY ================= */
+    const updateQuantity = async (itemId, delta, currentQty) => {
+        const newQty = Math.max(1, currentQty + delta);
+        try {
+            await cartService.updateCartItem(itemId, newQty);
+            fetchCart();
+        } catch (error) {
+            console.error("Update quantity failed:", error);
+        }
+    };
+
+    /* ================= REMOVE ITEM ================= */
+    const removeItem = async (itemId) => {
+        try {
+            await cartService.deleteCartItem(itemId);
+            fetchCart();
+        } catch (error) {
+            console.error("Remove item failed:", error);
+        }
+    };
+
+    /* ================= PRICE ================= */
+    const formatPrice = (price) =>
+        Number(price).toLocaleString("vi-VN") + "₫";
+
+   const subtotal = cartItems
+    .filter(item => selectedIds.includes(item.id))
+    .reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+
     const shipping = 0;
     const tax = 0;
     const total = subtotal + shipping + tax;
@@ -83,25 +81,53 @@ const Cart = () => {
                 <div className="container">
                     <div className="cart__header">
                         <h1 className="cart__title">GIỎ HÀNG</h1>
-                        <p className="cart__count">({cartItems.length} mặt hàng trong giỏ của bạn)</p>
+                        <p className="cart__count">
+                            ({cartItems.length} mặt hàng trong giỏ của bạn)
+                        </p>
                     </div>
 
                     <div className="cart__content">
-                        {/* Cart Items */}
+                        {/* CART ITEMS */}
                         <div className="cart__items">
                             {cartItems.length === 0 ? (
                                 <div className="cart__empty">
                                     <p>Giỏ hàng của bạn đang trống</p>
-                                    <a href="/products" className="cart__shop-btn">Tiếp tục mua sắm</a>
+                                    <a
+                                        href="/products"
+                                        className="cart__shop-btn"
+                                    >
+                                        Tiếp tục mua sắm
+                                    </a>
                                 </div>
                             ) : (
                                 <>
+                                <label style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+                                    <input
+                                        type="checkbox"
+                                        checked={
+                                            cartItems.length > 0 &&
+                                            selectedIds.length === cartItems.length
+                                        }
+                                        onChange={toggleSelectAll}
+                                    />
+                                    Chọn tất cả
+                                </label>
                                     {cartItems.map((item) => (
-                                        <div key={item.id} className="cart-item">
+                                        <div
+                                            key={item.id}
+                                            className="cart-item"
+                                        >
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedIds.includes(item.id)}
+                                            onChange={() => toggleSelectItem(item.id)}
+                                            style={{ marginRight: 8 }}
+                                        />
                                             <button
                                                 className="cart-item__remove"
-                                                onClick={() => removeItem(item.id)}
-                                                aria-label="Xóa sản phẩm"
+                                                onClick={() =>
+                                                    removeItem(item.id)
+                                                }
                                             >
                                                 ×
                                             </button>
@@ -111,26 +137,50 @@ const Cart = () => {
                                             </div>
 
                                             <div className="cart-item__details">
-                                                <h3 className="cart-item__name">{item.name}</h3>
-                                                <p className="cart-item__category">{item.category}</p>
-                                                <p className="cart-item__color">{item.color}</p>
+                                                <h3 className="cart-item__name">
+                                                    {item.name}
+                                                </h3>
 
                                                 <div className="cart-item__actions">
                                                     <div className="cart-item__quantity">
                                                         <button
-                                                            onClick={() => updateQuantity(item.id, -1)}
-                                                            disabled={item.quantity <= 1}
+                                                            disabled={
+                                                                item.quantity <=
+                                                                1
+                                                            }
+                                                            onClick={() =>
+                                                                updateQuantity(
+                                                                    item.id,
+                                                                    -1,
+                                                                    item.quantity
+                                                                )
+                                                            }
                                                         >
                                                             −
                                                         </button>
-                                                        <span>{item.quantity}</span>
-                                                        <button onClick={() => updateQuantity(item.id, 1)}>
+
+                                                        <span>
+                                                            {item.quantity}
+                                                        </span>
+
+                                                        <button
+                                                            onClick={() =>
+                                                                updateQuantity(
+                                                                    item.id,
+                                                                    1,
+                                                                    item.quantity
+                                                                )
+                                                            }
+                                                        >
                                                             +
                                                         </button>
                                                     </div>
 
                                                     <p className="cart-item__price">
-                                                        {formatPrice(item.price * item.quantity)}
+                                                        {formatPrice(
+                                                            item.price *
+                                                                item.quantity
+                                                        )}
                                                     </p>
                                                 </div>
                                             </div>
@@ -139,89 +189,66 @@ const Cart = () => {
                                 </>
                             )}
                         </div>
+
+                        {/* SUMMARY */}
                         {cartItems.length > 0 && (
                             <div className="cart__summary">
-                                <h2 className="cart__summary-title">TÓM TẮT ĐỚN HÀNG</h2>
+                                <h2 className="cart__summary-title">
+                                    TÓM TẮT ĐƠN HÀNG
+                                </h2>
 
                                 <div className="cart__summary-row">
                                     <span>Tạm tính</span>
-                                    <span>{formatPrice(subtotal)}</span>
+                                    <span>
+                                        {formatPrice(subtotal)}
+                                    </span>
                                 </div>
 
                                 <div className="cart__summary-row">
                                     <span>Vận chuyển</span>
-                                    <span className="cart__summary-free">Miễn phí</span>
+                                    <span className="cart__summary-free">
+                                        Miễn phí
+                                    </span>
                                 </div>
 
                                 <div className="cart__summary-row">
                                     <span>Thuế</span>
-                                    <span className="cart__summary-included">Đã bao gồm</span>
+                                    <span className="cart__summary-included">
+                                        Đã bao gồm
+                                    </span>
                                 </div>
 
-                                <div className="cart__summary-divider"></div>
-
-                                <div className="cart__summary-row cart__summary-discount">
-                                    <span>Mã giảm giá</span>
-                                    <span className="cart__summary-apply">Áp dụng</span>
-                                </div>
-
-                                <div className="cart__summary-divider"></div>
+                                <div className="cart__summary-divider" />
 
                                 <div className="cart__summary-row cart__summary-total">
                                     <span>TỔNG CỘNG</span>
-                                    <span>{formatPrice(total)}</span>
+                                    <span>
+                                        {formatPrice(total)}
+                                    </span>
                                 </div>
 
                                 <p className="cart__summary-note">
-                                    (Khuyến mại sẽ được cập nhật sau khi thanh toán)
+                                    (Khuyến mại sẽ được cập nhật sau khi thanh
+                                    toán)
                                 </p>
 
                                 <button
                                     onClick={() => navigate('/payment')}
                                     className="cart__checkout-btn"
+                                    disabled={selectedIds.length === 0}
                                 >
                                     TIẾN HÀNH THANH TOÁN →
                                 </button>
 
-                                <div className="cart__payment-methods">
-                                    {paymentMethods.map((method, index) => (
-                                        <a
-                                            key={index}
-                                            href={method.url}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="cart__payment-link"
-                                            title={method.name}
-                                        >
-                                            <img src={method.image} alt={method.name} />
-                                        </a>
-                                    ))}
-                                </div>
-
                                 <p className="cart__security">
-                                    <ShieldCheck size={16} strokeWidth={2} />
-                                    <span>Thanh toán bảo mật 100%</span>
+                                    <ShieldCheck size={16} />
+                                    <span>
+                                        Thanh toán bảo mật 100%
+                                    </span>
                                 </p>
                             </div>
                         )}
                     </div>
-                    {cartItems.length > 0 && (
-                        <section className="cart__recommended">
-                            <h2 className="cart__recommended-title">CÓ THỂ BẠN SẼ THÍCH</h2>
-
-                            <div className="cart__recommended-grid">
-                                {recommendedProducts.map((product) => (
-                                    <div key={product.id} className="recommended-card">
-                                        <div className="recommended-card__image">
-                                            <div className="recommended-card__image-placeholder"></div>
-                                        </div>
-                                        <h3 className="recommended-card__name">{product.name}</h3>
-                                        <p className="recommended-card__price">{product.price}</p>
-                                    </div>
-                                ))}
-                            </div>
-                        </section>
-                    )}
                 </div>
             </div>
         </LayoutDefault>
