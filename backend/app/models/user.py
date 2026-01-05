@@ -21,3 +21,4 @@ class User(BaseModel):
     created_at: datetime = Column(DateTime, index=True, default=datetime.now)
     updated_at: datetime = Column(DateTime, index=True, default=datetime.now)
 
+

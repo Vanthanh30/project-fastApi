@@ -1,92 +1,68 @@
 import React, { useState } from "react";
-import { Search, Filter, Eye, Check, X, MessageSquare } from "lucide-react"; // Import thêm icon
+import { Search, Filter, Eye, Check, X, MessageSquare } from "lucide-react";
 import Sidebar from "../layout_default/Sidebar";
+import orderService from "../../../service/admin/orderService";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+
 import "./order.scss";
 
 const OrderPage = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("all");
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const orders = [
-    {
-      id: "#ORD-7782",
-      customerName: "Trần Thị B",
-      email: "tranb@gmail.com",
-      date: "24/10/2023",
-      time: "10:30 AM",
-      total: 5800000,
-      status: "pending",
-    },
-    {
-      id: "#ORD-7783",
-      customerName: "Nguyễn Văn A",
-      email: "nguyena@gmail.com",
-      date: "24/10/2023",
-      time: "09:15 AM",
-      total: 1250000,
-      status: "delivering",
-    },
-    {
-      id: "#ORD-7784",
-      customerName: "Lê Thị C",
-      email: "lec@gmail.com",
-      date: "23/10/2023",
-      time: "14:20 PM",
-      total: 3400000,
-      status: "delivered",
-    },
-    {
-      id: "#ORD-7785",
-      customerName: "Phạm Văn D",
-      email: "phamd@gmail.com",
-      date: "23/10/2023",
-      time: "08:45 AM",
-      total: 890000,
-      status: "cancelled",
-    },
-  ];
+  useEffect(() => {
+    loadData();
+  }, []);
 
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const ordersData = await orderService.getAllOrders();
+      setOrders(ordersData);
+    } catch (err) {
+      setError(err.message || "Không thể tải dữ liệu");
+      console.error("Error loading data:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat("vi-VN", {
       style: "currency",
       currency: "VND",
     }).format(amount);
   };
+  const formatDateTime = (iso) => {
+    const d = new Date(iso);
+    return d.toLocaleString("vi-VN");
+  };
+
 
   const getStatusBadge = (status) => {
     switch (status) {
-      case "pending":
-        return (
-          <span className="order-page__status-badge order-page__status-badge--pending">
-            ● Chờ xác nhận
-          </span>
-        );
-      case "delivering":
-        return (
-          <span className="order-page__status-badge order-page__status-badge--delivering">
-            ● Đang giao
-          </span>
-        );
-      case "delivered":
-        return (
-          <span className="order-page__status-badge order-page__status-badge--delivered">
-            ● Đã giao
-          </span>
-        );
-      case "cancelled":
-        return (
-          <span className="order-page__status-badge order-page__status-badge--cancelled">
-            ● Đã hủy
-          </span>
-        );
+      case "Chờ xác nhận":
+        return <span className="order-page__status-badge order-page__status-badge--pending">● Chờ xác nhận</span>;
+      case "Đang giao":
+        return <span className="order-page__status-badge order-page__status-badge--delivering">● Đang giao</span>;
+      case "Đã giao":
+        return <span className="order-page__status-badge order-page__status-badge--delivered">● Đã giao</span>;
+      case "Đã hủy":
+        return <span className="order-page__status-badge order-page__status-badge--cancelled">● Đã hủy</span>;
       default:
         return null;
     }
   };
 
+
   // Cập nhật phần renderActions để dùng Icon
   const renderActions = (status) => {
     switch (status) {
-      case "pending":
+      case "Chờ xác nhận":
         return (
           <>
             <button
@@ -101,9 +77,15 @@ const OrderPage = () => {
             >
               <Check size={18} />
             </button>
+            <button
+              className="order-page__btn-action order-page__btn-action--view"
+              title="Xem chi tiết"
+            >
+              <Eye size={18} />
+            </button>
           </>
         );
-      case "delivering":
+      case "Đang giao":
         return (
           <>
             <button
@@ -120,16 +102,17 @@ const OrderPage = () => {
             </button>
           </>
         );
-      case "delivered":
+      case "Đã giao":
         return (
           <button
-            className="order-page__btn-action order-page__btn-action--contact"
-            title="Liên hệ khách hàng"
+            className="order-page__btn-action order-page__btn-action--view"
+            title="Xem chi tiết"
           >
-            <MessageSquare size={18} />
+            <Eye size={18} />
           </button>
+
         );
-      case "cancelled":
+      case "Đã hủy":
         return (
           <button
             className="order-page__btn-action order-page__btn-action--view"
@@ -177,16 +160,15 @@ const OrderPage = () => {
         <div className="order-page__tabs">
           {[
             { id: "all", label: "TẤT CẢ" },
-            { id: "pending", label: "CHỜ XÁC NHẬN" },
-            { id: "delivering", label: "ĐANG GIAO" },
-            { id: "delivered", label: "ĐÃ GIAO" },
-            { id: "cancelled", label: "ĐÃ HỦY" },
+            { id: "Chờ xác nhận", label: "CHỜ XÁC NHẬN" },
+            { id: "Đang giao", label: "ĐANG GIAO" },
+            { id: "Đã giao", label: "ĐÃ GIAO" },
+            { id: "Đã hủy", label: "ĐÃ HỦY" },
           ].map((tab) => (
             <button
               key={tab.id}
-              className={`order-page__tab-btn ${
-                activeTab === tab.id ? "order-page__tab-btn--active" : ""
-              }`}
+              className={`order-page__tab-btn ${activeTab === tab.id ? "order-page__tab-btn--active" : ""
+                }`}
               onClick={() => setActiveTab(tab.id)}
             >
               {tab.label}
@@ -220,14 +202,13 @@ const OrderPage = () => {
                   </td>
                   <td>
                     <div className="order-page__customer">
-                      <span>{order.customerName}</span>
+                      <span>{order.full_name}</span>
                       <span>{order.email}</span>
                     </div>
                   </td>
                   <td>
                     <div className="order-page__date">
-                      <span>{order.date}</span>
-                      <span>{order.time}</span>
+                      <span>{formatDateTime(order.created_at)}</span>
                     </div>
                   </td>
                   <td>
