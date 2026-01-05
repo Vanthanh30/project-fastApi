@@ -4,7 +4,6 @@ import LayoutDefault from '../layout_default/layout_default';
 import './payment.scss';
 
 const Payment = () => {
-    // Mock data từ cart (trong thực tế sẽ lấy từ context/redux)
     const [cartItems] = useState([
         {
             id: 1,
