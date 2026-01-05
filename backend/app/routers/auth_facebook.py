@@ -1,9 +1,11 @@
 from fastapi import APIRouter, Request, HTTPException, Depends
+from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 
 from app.core.oauth import oauth
 from app.db.base import get_db
 from app.utils.auth_facebook import get_or_create_facebook_user
+from app.core.security import create_access_token
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
@@ -43,12 +45,7 @@ async def facebook_callback(
         )
 
     user = get_or_create_facebook_user(db, profile)
-
-    return {
-        "message": f"Đã đăng nhập thành công bằng Facebook với tên là: {user.name}",
-        "user": {
-            "id": user.id,
-            "name": user.name,
-            "email": user.email
-        }
-    }
+    access_token = create_access_token(user_id=user.id, role="client")
+    frontend_url = f"http://localhost:5173?access_token={access_token}"
+    
+    return RedirectResponse(url=frontend_url, status_code=303)

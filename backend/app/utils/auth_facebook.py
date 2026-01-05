@@ -10,7 +10,7 @@ def get_or_create_facebook_user(db: Session, profile: dict) -> User:
         raise ValueError("Facebook ID is required")
 
     if not email:
-        email = f"{facebook_id}@facebook.local"
+        email = f"{facebook_id}@facebook.com"
 
     user = db.query(User).filter(User.email == email).first()
 
@@ -20,7 +20,8 @@ def get_or_create_facebook_user(db: Session, profile: dict) -> User:
     user = User(
         email=email,
         name=name,
-        password=None
+        password=None,
+        role_id=2
     )
 
     db.add(user)
