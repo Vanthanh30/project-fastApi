@@ -25,9 +25,12 @@ class UserResponse(BaseModel):
     email: EmailStr
     avatar: Optional[str] = None
     role_id: int
+    phone: Optional[str] = None
+    address: Optional[str] = None
 
     class Config:
         from_attributes = True
+
 class UserUpdateRequest(BaseModel):
     name: Optional[str] = None
     address: Optional[str] = None
