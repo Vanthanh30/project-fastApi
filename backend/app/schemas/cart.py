@@ -9,6 +9,7 @@ class UpdateCartItemRequest(BaseModel):
     quantity: int
 
 class CartItemResponse(BaseModel):
+    id: int
     product_id: int
     name: str
     price: float
