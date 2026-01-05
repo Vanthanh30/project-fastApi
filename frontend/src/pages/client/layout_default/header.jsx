@@ -78,7 +78,7 @@ const Header = () => {
 
   const handleOrders = () => {
     setIsUserMenuOpen(false);
-    navigate("/orders");
+    navigate("/order");
   };
 
   const handleLogout = () => {
