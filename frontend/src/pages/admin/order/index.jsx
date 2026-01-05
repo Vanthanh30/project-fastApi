@@ -58,22 +58,45 @@ const OrderPage = () => {
     }
   };
 
+  const handleApprove = async (orderId) => {
+    if (!confirm("Bạn có chắc muốn duyệt đơn này?")) return;
+
+    try {
+      await orderService.approveOrder(orderId);
+      loadData();
+    } catch (err) {
+      alert(err.response?.data?.detail || "Không thể duyệt đơn");
+    }
+  };
+
+  const handleCancel = async (orderId) => {
+    if (!confirm("Bạn có chắc muốn hủy đơn này?")) return;
+
+    try {
+      await orderService.cancelOrder(orderId);
+      loadData();
+    } catch (err) {
+      alert(err.response?.data?.detail || "Không thể hủy đơn");
+    }
+  };
 
   // Cập nhật phần renderActions để dùng Icon
-  const renderActions = (status) => {
-    switch (status) {
+  const renderActions = (order) => {
+    switch (order.status) {
       case "Chờ xác nhận":
         return (
           <>
             <button
               className="order-page__btn-action order-page__btn-action--cancel"
               title="Hủy đơn"
+              onClick={() => handleCancel(order.id)}
             >
               <X size={18} />
             </button>
             <button
               className="order-page__btn-action order-page__btn-action--confirm"
               title="Xác nhận"
+              onClick={() => handleApprove(order.id)}
             >
               <Check size={18} />
             </button>
@@ -87,20 +110,12 @@ const OrderPage = () => {
         );
       case "Đang giao":
         return (
-          <>
-            <button
-              className="order-page__btn-action order-page__btn-action--cancel"
-              title="Hủy giao"
-            >
-              <X size={18} />
-            </button>
-            <button
-              className="order-page__btn-action order-page__btn-action--confirm"
-              title="Xác nhận đã giao"
-            >
-              <Check size={18} />
-            </button>
-          </>
+          <button
+            className="order-page__btn-action order-page__btn-action--view"
+            title="Xem chi tiết"
+          >
+            <Eye size={18} />
+          </button>
         );
       case "Đã giao":
         return (
@@ -219,7 +234,7 @@ const OrderPage = () => {
                   <td>{getStatusBadge(order.status)}</td>
                   <td>
                     <div className="order-page__actions">
-                      {renderActions(order.status)}
+                      {renderActions(order)}
                     </div>
                   </td>
                 </tr>

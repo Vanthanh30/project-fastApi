@@ -11,5 +11,22 @@ class OrderService {
             throw this.handleError(error);
         }
     }
+
+    async approveOrder(orderId) {
+        try {
+            const response = await axios.put(`${API_URL}/orders/${orderId}/approve_order/`);
+            return response.data;
+        } catch (error) {
+            throw this.handleError(error);
+        }
+    }
+    async cancelOrder(orderId) {
+        try {
+            const response = await axios.put(`${API_URL}/orders/${orderId}/cancel_order/`);
+            return response.data;
+        } catch (error) {
+            throw this.handleError(error);
+        }
+    }
 }
 export default new OrderService();

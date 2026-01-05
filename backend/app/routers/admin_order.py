@@ -39,7 +39,7 @@ def approve_order(order_id: int, db: Session = Depends(get_db)):
         "status": order.status
 
     }
-@router.put("{order_id}/cancel_order")
+@router.put("/{order_id}/cancel_order")
 def cancel_order(order_id: int, db: Session = Depends(get_db)):
     order = db.query(Order).filter(Order.id == order_id).first()
     if not order:
