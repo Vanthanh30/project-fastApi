@@ -1,13 +1,15 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from datetime import datetime
+from fastapi import APIRouter, Depends, HTTPException, status,UploadFile, File, Form
 from sqlalchemy.orm import Session
-
+from typing import Optional
 from app.db.base import get_db
 from app.models.user import User
+
 from app.schemas.auth import (
     RegisterRequest,
     LoginRequest,
     TokenResponse,
-    UserResponse
+    UserResponse,UserUpdateRequest
 )
 from app.core.security import (
     hash_password,
@@ -16,6 +18,7 @@ from app.core.security import (
 )
 
 from app.middleware.authenticate import authenticate
+from app.middleware.cloudinary import upload_avatar
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
@@ -74,4 +77,42 @@ def login_user(data: LoginRequest, db: Session = Depends(get_db)):
 
 @router.get("/me", response_model=UserResponse)
 def read_users_me(current_user: User = Depends(authenticate)):
+    return current_user
+@router.put("/me", response_model=UserResponse)
+async def update_user_me(
+    name: Optional[str] = Form(None),
+    address: Optional[str] = Form(None),
+    phone: Optional[str] = Form(None),
+    password: Optional[str] = Form(None),
+    avatar: Optional[UploadFile] = File(None),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(authenticate)
+):
+    # ✅ Update text fields
+    if name is not None:
+        current_user.name = name
+
+    if address is not None:
+        current_user.address = address
+
+    if phone is not None:
+        current_user.phone = phone
+    if password is not None:
+        if len(password) < 6:
+            raise HTTPException(
+                status_code=400,
+                detail="Password must be at least 6 characters"
+            )
+        current_user.password = hash_password(password)
+    # ✅ Update avatar nếu có upload
+    if avatar is not None:
+        upload_result = await upload_avatar(avatar)
+        current_user.avatar = upload_result["url"]
+
+
+    current_user.updated_at = datetime.now()
+
+    db.commit()
+    db.refresh(current_user)
+
     return current_user
