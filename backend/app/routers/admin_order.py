@@ -6,6 +6,7 @@ from app.schemas.admin_order import OrderResponse
 from app.db.base import get_db
 from app.models.order import Order, OrderStatus
 from app.models.order_item import OrderItem
+from app.middleware.authenticate import admin_required
 
 router = APIRouter(prefix="/orders", tags=["adminOrders"])
 
@@ -23,7 +24,7 @@ def get_order_by_id(order_id: int, db: Session = Depends(get_db)):
 
     return order
 
-@router.put("/{order_id}/approve_order")
+@router.put("/{order_id}/approve_order",dependencies=[Depends(admin_required)])
 def approve_order(order_id: int, db: Session = Depends(get_db)):
     order = db.query(Order).filter(Order.id == order_id).first()
     if not order:
@@ -39,7 +40,7 @@ def approve_order(order_id: int, db: Session = Depends(get_db)):
         "status": order.status
 
     }
-@router.put("/{order_id}/cancel_order")
+@router.put("/{order_id}/cancel_order",dependencies=[Depends(admin_required)])
 def cancel_order(order_id: int, db: Session = Depends(get_db)):
     order = db.query(Order).filter(Order.id == order_id).first()
     if not order:
