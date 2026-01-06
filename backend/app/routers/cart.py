@@ -23,6 +23,7 @@ def get_cart(db: Session = Depends(get_db), user=Depends(authenticate)):
                 id=item.id, 
                 product_id=item.product.id,
                 name=item.product.name,
+                image=item.product.image,
                 price=float(item.product.price),
                 quantity=item.quantity,
                 total=float(item.product.price) * item.quantity

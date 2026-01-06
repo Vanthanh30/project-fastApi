@@ -16,6 +16,8 @@ api.interceptors.request.use((config) => {
 });
 
 const cartService = {
+    addToCart: (productId, quantity) =>
+        api.post("/cart/add", { product_id: productId, quantity }).then(res => res.data),
     getCart: () => api.get("/cart").then(res => res.data),
     updateCartItem: (id, quantity) =>
         api.put(`/cart/item/${id}`, { quantity }).then(res => res.data),

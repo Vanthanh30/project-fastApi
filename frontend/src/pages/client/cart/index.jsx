@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import { ShieldCheck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import LayoutDefault from "../layout_default/layout_default";
-import cartService from "../../../service/cartService";
+import cartService from "../../../service/client/cartService";
+import ProductService from "../../../service/client/productService";
 import "./cart.scss";
 
 const Cart = () => {
@@ -10,7 +11,6 @@ const Cart = () => {
     const [selectedIds, setSelectedIds] = useState([]);
     const navigate = useNavigate();
 
-    /* ================= FETCH CART ================= */
     useEffect(() => {
         fetchCart();
     }, []);
@@ -26,11 +26,11 @@ const Cart = () => {
     };
 
     const toggleSelectItem = (id) => {
-    setSelectedIds(prev =>
-        prev.includes(id)
-            ? prev.filter(x => x !== id)
-            : [...prev, id]
-    );
+        setSelectedIds(prev =>
+            prev.includes(id)
+                ? prev.filter(x => x !== id)
+                : [...prev, id]
+        );
     };
 
     const toggleSelectAll = () => {
@@ -41,7 +41,6 @@ const Cart = () => {
         }
     };
 
-    /* ================= UPDATE QUANTITY ================= */
     const updateQuantity = async (itemId, delta, currentQty) => {
         const newQty = Math.max(1, currentQty + delta);
         try {
@@ -52,24 +51,22 @@ const Cart = () => {
         }
     };
 
-    /* ================= REMOVE ITEM ================= */
     const removeItem = async (itemId) => {
         try {
             await cartService.deleteCartItem(itemId);
+            setSelectedIds(prev => prev.filter(id => id !== itemId));
             fetchCart();
         } catch (error) {
             console.error("Remove item failed:", error);
         }
     };
 
-    /* ================= PRICE ================= */
     const formatPrice = (price) =>
         Number(price).toLocaleString("vi-VN") + "₫";
 
-   const subtotal = cartItems
-    .filter(item => selectedIds.includes(item.id))
-    .reduce((sum, item) => sum + item.price * item.quantity, 0);
-
+    const subtotal = cartItems
+        .filter(item => selectedIds.includes(item.id))
+        .reduce((sum, item) => sum + item.price * item.quantity, 0);
 
     const shipping = 0;
     const tax = 0;
@@ -87,67 +84,61 @@ const Cart = () => {
                     </div>
 
                     <div className="cart__content">
-                        {/* CART ITEMS */}
                         <div className="cart__items">
                             {cartItems.length === 0 ? (
                                 <div className="cart__empty">
                                     <p>Giỏ hàng của bạn đang trống</p>
-                                    <a
-                                        href="/products"
-                                        className="cart__shop-btn"
-                                    >
+                                    <a href="/products" className="cart__shop-btn">
                                         Tiếp tục mua sắm
                                     </a>
                                 </div>
                             ) : (
                                 <>
-                                <label style={{ display: "flex", gap: 8, marginBottom: 12 }}>
-                                    <input
-                                        type="checkbox"
-                                        checked={
-                                            cartItems.length > 0 &&
-                                            selectedIds.length === cartItems.length
-                                        }
-                                        onChange={toggleSelectAll}
-                                    />
-                                    Chọn tất cả
-                                </label>
-                                    {cartItems.map((item) => (
-                                        <div
-                                            key={item.id}
-                                            className="cart-item"
-                                        >
+                                    <label style={{ display: "flex", gap: 8, marginBottom: 12 }}>
                                         <input
                                             type="checkbox"
-                                            checked={selectedIds.includes(item.id)}
-                                            onChange={() => toggleSelectItem(item.id)}
-                                            style={{ marginRight: 8 }}
+                                            checked={
+                                                cartItems.length > 0 &&
+                                                selectedIds.length === cartItems.length
+                                            }
+                                            onChange={toggleSelectAll}
                                         />
+                                        Chọn tất cả
+                                    </label>
+                                    {cartItems.map((item) => (
+                                        <div key={item.id} className="cart-item">
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedIds.includes(item.id)}
+                                                onChange={() => toggleSelectItem(item.id)}
+                                                style={{ marginRight: 8 }}
+                                            />
                                             <button
                                                 className="cart-item__remove"
-                                                onClick={() =>
-                                                    removeItem(item.id)
-                                                }
+                                                onClick={() => removeItem(item.id)}
                                             >
                                                 ×
                                             </button>
 
                                             <div className="cart-item__image">
-                                                <div className="cart-item__image-placeholder"></div>
+                                                <img
+                                                    src={ProductService.getImageUrl(item.image || item.product_image)}
+                                                    alt={item.name || item.product_name}
+                                                    onError={(e) => {
+                                                        e.target.src = 'https://via.placeholder.com/120x120?text=No+Image';
+                                                    }}
+                                                />
                                             </div>
 
                                             <div className="cart-item__details">
                                                 <h3 className="cart-item__name">
-                                                    {item.name}
+                                                    {item.name || item.product_name}
                                                 </h3>
 
                                                 <div className="cart-item__actions">
                                                     <div className="cart-item__quantity">
                                                         <button
-                                                            disabled={
-                                                                item.quantity <=
-                                                                1
-                                                            }
+                                                            disabled={item.quantity <= 1}
                                                             onClick={() =>
                                                                 updateQuantity(
                                                                     item.id,
@@ -158,11 +149,7 @@ const Cart = () => {
                                                         >
                                                             −
                                                         </button>
-
-                                                        <span>
-                                                            {item.quantity}
-                                                        </span>
-
+                                                        <span>{item.quantity}</span>
                                                         <button
                                                             onClick={() =>
                                                                 updateQuantity(
@@ -177,10 +164,7 @@ const Cart = () => {
                                                     </div>
 
                                                     <p className="cart-item__price">
-                                                        {formatPrice(
-                                                            item.price *
-                                                                item.quantity
-                                                        )}
+                                                        {formatPrice(item.price * item.quantity)}
                                                     </p>
                                                 </div>
                                             </div>
@@ -190,7 +174,6 @@ const Cart = () => {
                             )}
                         </div>
 
-                        {/* SUMMARY */}
                         {cartItems.length > 0 && (
                             <div className="cart__summary">
                                 <h2 className="cart__summary-title">
@@ -199,37 +182,28 @@ const Cart = () => {
 
                                 <div className="cart__summary-row">
                                     <span>Tạm tính</span>
-                                    <span>
-                                        {formatPrice(subtotal)}
-                                    </span>
+                                    <span>{formatPrice(subtotal)}</span>
                                 </div>
 
                                 <div className="cart__summary-row">
                                     <span>Vận chuyển</span>
-                                    <span className="cart__summary-free">
-                                        Miễn phí
-                                    </span>
+                                    <span className="cart__summary-free">Miễn phí</span>
                                 </div>
 
                                 <div className="cart__summary-row">
                                     <span>Thuế</span>
-                                    <span className="cart__summary-included">
-                                        Đã bao gồm
-                                    </span>
+                                    <span className="cart__summary-included">Đã bao gồm</span>
                                 </div>
 
                                 <div className="cart__summary-divider" />
 
                                 <div className="cart__summary-row cart__summary-total">
                                     <span>TỔNG CỘNG</span>
-                                    <span>
-                                        {formatPrice(total)}
-                                    </span>
+                                    <span>{formatPrice(total)}</span>
                                 </div>
 
                                 <p className="cart__summary-note">
-                                    (Khuyến mại sẽ được cập nhật sau khi thanh
-                                    toán)
+                                    (Khuyến mại sẽ được cập nhật sau khi thanh toán)
                                 </p>
 
                                 <button
@@ -242,9 +216,7 @@ const Cart = () => {
 
                                 <p className="cart__security">
                                     <ShieldCheck size={16} />
-                                    <span>
-                                        Thanh toán bảo mật 100%
-                                    </span>
+                                    <span>Thanh toán bảo mật 100%</span>
                                 </p>
                             </div>
                         )}

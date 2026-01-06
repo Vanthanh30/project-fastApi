@@ -31,3 +31,16 @@ def authenticate(
         raise HTTPException(status_code=404, detail="User not found")
 
     return user
+def admin_required(
+    user: User = Depends(authenticate)
+):
+    """
+    Kiểm tra xem user có quyền admin không
+    """
+    if user.role_id != 1:
+        raise HTTPException(
+            status_code=403, 
+            detail="Bạn không có quyền truy cập. Yêu cầu quyền admin."
+        )
+    
+    return user

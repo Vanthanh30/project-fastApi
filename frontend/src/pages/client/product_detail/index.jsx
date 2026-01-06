@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ChevronRight, ChevronDown } from 'lucide-react';
+import { ChevronRight, ChevronDown, ShoppingCart } from 'lucide-react';
 import LayoutDefault from '../layout_default/layout_default';
 import ChatboxAI from '../../../components/Chatbox/ChatboxAI';
 import ProductService from '../../../service/client/productService';
 import CategoryService from '../../../service/client/categoryService';
+import cartService from '../../../service/client/cartService';
 import './product_detail.scss';
 
 const ProductDetail = () => {
@@ -14,6 +15,7 @@ const ProductDetail = () => {
     const [relatedProducts, setRelatedProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [addingToCart, setAddingToCart] = useState(false);
 
     const [selectedImage, setSelectedImage] = useState(0);
     const [quantity, setQuantity] = useState(1);
@@ -34,7 +36,6 @@ const ProductDetail = () => {
             const productData = await ProductService.getProductById(id);
             setProduct(productData);
 
-            // Lấy thông tin category
             if (productData.category_id) {
                 try {
                     const categoryData = await CategoryService.getCategoryById(productData.category_id);
@@ -43,7 +44,6 @@ const ProductDetail = () => {
                     console.error('Không thể lấy thông tin danh mục:', err);
                 }
 
-                // Lấy sản phẩm liên quan
                 try {
                     const related = await ProductService.getProductsByCategory(productData.category_id);
                     const filtered = related.filter(p => p.id !== productData.id).slice(0, 4);
@@ -67,8 +67,25 @@ const ProductDetail = () => {
         }
     };
 
-    const handleAddToCart = () => {
-        console.log('Add to cart:', { product, quantity });
+    const handleAddToCart = async () => {
+        try {
+            setAddingToCart(true);
+
+            // Gọi API thêm vào giỏ hàng
+            const response = await cartService.addToCart(product.id, quantity);
+
+            // Hiển thị thông báo thành công
+            alert(`Đã thêm ${quantity} sản phẩm vào giỏ hàng!`);
+
+            // Reset số lượng về 1
+            setQuantity(1);
+
+        } catch (error) {
+            console.error('Lỗi khi thêm vào giỏ hàng:', error);
+            alert(error.message || 'Không thể thêm vào giỏ hàng. Vui lòng thử lại!');
+        } finally {
+            setAddingToCart(false);
+        }
     };
 
     const toggleAccordion = (key) => {
@@ -182,16 +199,24 @@ const ProductDetail = () => {
                                         +
                                     </button>
                                 </div>
-                                <button className="product-detail__buy-btn" onClick={handleAddToCart}>
-                                    THÊM VÀO GIỎ - {ProductService.formatPrice(product.price * quantity)}₫
+                                <button
+                                    className="product-detail__buy-btn"
+                                    onClick={handleAddToCart}
+                                    disabled={addingToCart}
+                                >
+                                    {addingToCart ? 'ĐANG THÊM...' : `THÊM VÀO GIỎ - ${ProductService.formatPrice(product.price * quantity)}₫`}
                                 </button>
-                                <button className="product-detail__wishlist-btn">
-                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                                        <path d="M10 18.35l-1.45-1.32C3.4 12.36 0 9.28 0 5.5 0 2.42 2.42 0 5.5 0 7.24 0 8.91.81 10 2.09 11.09.81 12.76 0 14.5 0 17.58 0 20 2.42 20 5.5c0 3.78-3.4 6.86-8.55 11.54L10 18.35z" fill="currentColor" />
-                                    </svg>
+                                <button
+                                    className="product-detail__cart-btn"
+                                    onClick={handleAddToCart}
+                                    disabled={addingToCart}
+                                    title="Thêm vào giỏ hàng"
+                                >
+                                    <ShoppingCart size={20} />
                                 </button>
                             </div>
 
+                            {/* Phần còn lại giữ nguyên */}
                             <div className="product-detail__accordion">
                                 <div className="product-detail__accordion-item">
                                     <button
