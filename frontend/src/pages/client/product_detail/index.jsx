@@ -71,13 +71,12 @@ const ProductDetail = () => {
     };
 
     const handleAddToCart = async () => {
-        // Check if user is logged in first
         const token = localStorage.getItem("access_token");
         if (!token) {
-            const shouldRedirect = window.confirm(
-                "Bạn cần đăng nhập để thêm sản phẩm vào giỏ hàng. Chuyển đến trang đăng nhập?"
+            const ok = window.confirm(
+                "Bạn cần đăng nhập để thêm sản phẩm vào giỏ hàng. Chuyển đến đăng nhập?"
             );
-            if (shouldRedirect) {
+            if (ok) {
                 window.location.href = `/login?redirect=/product/${id}`;
             }
             return;
@@ -85,24 +84,27 @@ const ProductDetail = () => {
 
         try {
             setAddingToCart(true);
-            await cartService.addToCart(product.id, quantity);
-            alert(`Đã thêm ${quantity} sản phẩm vào giỏ hàng!`);
-            setQuantity(1);
-        } catch (error) {
-            console.error('Lỗi khi thêm vào giỏ hàng:', error);
 
-            // Better error messages
-            if (error.message.includes("đăng nhập")) {
-                alert(error.message);
-            } else if (error.response?.status === 401) {
-                alert("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
-            } else {
-                alert(error.response?.data?.message || error.message || 'Không thể thêm vào giỏ hàng. Vui lòng thử lại!');
+            const res = await cartService.addToCart(product.id, quantity);
+            if (res?.success === false) {
+                throw new Error(res.message || "Thêm vào giỏ thất bại");
             }
+
+            alert("Đã thêm sản phẩm vào giỏ hàng!");
+            setQuantity(1);
+            window.dispatchEvent(new Event("cart_updated"));
+        } catch (err) {
+            console.error(err);
+            alert(
+                err.response?.data?.message ||
+                err.message ||
+                "Không thể thêm vào giỏ hàng"
+            );
         } finally {
             setAddingToCart(false);
         }
     };
+
 
     const toggleAccordion = (key) => {
         setOpenAccordions(prev => ({

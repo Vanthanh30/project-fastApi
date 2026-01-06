@@ -21,23 +21,37 @@ api.interceptors.response.use(
         if (error.response?.status === 401) {
             localStorage.removeItem("access_token");
             localStorage.removeItem("user");
-            const message = "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.";
-            window.location.href = "/login?redirect=" + encodeURIComponent(window.location.pathname);
-
-            return Promise.reject(new Error(message));
+            window.location.href =
+                "/login?redirect=" +
+                encodeURIComponent(window.location.pathname);
         }
         return Promise.reject(error);
     }
 );
 
 const cartService = {
-    addToCart: (productId, quantity) =>
-        api.post("/cart/add", { product_id: productId, quantity }).then(res => res.data),
-    getCart: () => api.get("/cart").then(res => res.data),
-    updateCartItem: (id, quantity) =>
-        api.put(`/cart/item/${id}`, { quantity }).then(res => res.data),
-    deleteCartItem: (id) =>
-        api.delete(`/cart/item/${id}`).then(res => res.data),
+    addToCart: async (productId, quantity) => {
+        const res = await api.post("/cart/add", {
+            product_id: productId,
+            quantity,
+        });
+        return res.data;
+    },
+
+    getCart: async () => {
+        const res = await api.get("/cart");
+        return res.data;
+    },
+
+    updateCartItem: async (id, quantity) => {
+        const res = await api.put(`/cart/item/${id}`, { quantity });
+        return res.data;
+    },
+
+    deleteCartItem: async (id) => {
+        const res = await api.delete(`/cart/item/${id}`);
+        return res.data;
+    },
 };
 
 export default cartService;

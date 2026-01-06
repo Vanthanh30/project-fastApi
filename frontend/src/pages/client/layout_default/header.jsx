@@ -10,9 +10,13 @@ const Header = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
 
+  // ✅ FIX: cart count
+  const [cartCount, setCartCount] = useState(0);
+
   const userMenuRef = useRef(null);
   const navigate = useNavigate();
 
+  /* ================= USER ================= */
   useEffect(() => {
     const fetchUserData = async () => {
       const token = localStorage.getItem("access_token");
@@ -33,7 +37,6 @@ const Header = () => {
         setIsLoggedIn(true);
         setUser(response.data);
       } catch (error) {
-        console.error("Token không hợp lệ hoặc hết hạn:", error);
         localStorage.removeItem("access_token");
         setIsLoggedIn(false);
         setUser(null);
@@ -43,6 +46,36 @@ const Header = () => {
     fetchUserData();
   }, []);
 
+  /* ================= CART ================= */
+  const fetchCartCount = async () => {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      setCartCount(0);
+      return;
+    }
+
+    try {
+      const res = await axios.get("http://localhost:8000/cart/", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const items = res.data?.items || [];
+      setCartCount(items.reduce((s, i) => s + i.quantity, 0));
+    } catch (e) {
+      console.error(e);
+      setCartCount(0);
+    }
+  };
+
+  useEffect(() => {
+    fetchCartCount();
+    const handler = () => fetchCartCount();
+    window.addEventListener("cart_updated", handler);
+
+    return () => window.removeEventListener("cart_updated", handler);
+  }, []);
+
+  /* ================= CLICK OUTSIDE ================= */
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
@@ -53,13 +86,10 @@ const Header = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleCartClick = () => {
-    navigate("/cart");
-  };
+  /* ================= HANDLER ================= */
+  const handleCartClick = () => navigate("/cart");
 
-  const toggleUserMenu = () => {
-    setIsUserMenuOpen(!isUserMenuOpen);
-  };
+  const toggleUserMenu = () => setIsUserMenuOpen(!isUserMenuOpen);
 
   const handleLogin = () => {
     setIsUserMenuOpen(false);
@@ -85,6 +115,7 @@ const Header = () => {
     localStorage.removeItem("access_token");
     setIsLoggedIn(false);
     setUser(null);
+    setCartCount(0);
     setIsUserMenuOpen(false);
     navigate("/");
   };
@@ -375,7 +406,9 @@ const Header = () => {
               <circle cx="7" cy="17" r="1" fill="currentColor" />
               <circle cx="15" cy="17" r="1" fill="currentColor" />
             </svg>
-            <span className="header__cart-badge">1</span>
+            {cartCount > 0 && (
+              <span className="header__cart-badge">{cartCount}</span>
+            )}
           </button>
         </div>
       </div>

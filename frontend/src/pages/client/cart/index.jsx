@@ -21,13 +21,21 @@ const Cart = () => {
     const fetchCart = async () => {
         try {
             const res = await cartService.getCart();
-            console.log("Cart response:", res); // Debug: xem structure của response
-            setCartItems(Array.isArray(res.items) ? res.items : []);
+
+            // hỗ trợ mọi kiểu backend
+            const items =
+                res?.items ||
+                res?.data?.items ||
+                res?.data ||
+                [];
+
+            setCartItems(Array.isArray(items) ? items : []);
         } catch (error) {
             console.error("Fetch cart failed:", error);
             setCartItems([]);
         }
     };
+
 
     const toggleSelectItem = (id) => {
         setSelectedIds(prev =>

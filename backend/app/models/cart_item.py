@@ -3,7 +3,7 @@ from sqlalchemy.orm import relationship
 from app.models.base_model import BaseModel
 
 class CartItem(BaseModel):
-    _tablename_ = "cart_items"
+    __tablename__ = "cart_items"
 
     id = Column(Integer, primary_key=True, index=True)
     cart_id = Column(Integer, ForeignKey("carts.id"))
