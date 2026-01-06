@@ -8,7 +8,6 @@ class CartItem(BaseModel):
     id = Column(Integer, primary_key=True, index=True)
     cart_id = Column(Integer, ForeignKey("carts.id"))
     product_id = Column(Integer, ForeignKey("products.id"))
-    image = Column(String(500), nullable=True)
     quantity = Column(Integer, default=1)
 
     cart = relationship("Cart", back_populates="items")

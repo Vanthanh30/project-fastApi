@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List
+from typing import List,Optional 
 
 class AddToCartRequest(BaseModel):
     product_id: int
@@ -12,7 +12,7 @@ class CartItemResponse(BaseModel):
     id: int
     product_id: int
     name: str
-    image: str
+    image: Optional[str] = None 
     price: float
     quantity: int
     total: float  

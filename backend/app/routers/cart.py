@@ -23,7 +23,7 @@ def get_cart(db: Session = Depends(get_db), user=Depends(authenticate)):
                 id=item.id, 
                 product_id=item.product.id,
                 name=item.product.name,
-                image=item.image,
+                image=item.product.image,
                 price=float(item.product.price),
                 quantity=item.quantity,
                 total=float(item.product.price) * item.quantity
@@ -61,7 +61,6 @@ def add_to_cart(
         item = CartItem(
             cart_id=cart.id,
             product_id=product.id,
-            image=product.image,
             quantity=data.quantity
         )
         db.add(item)
