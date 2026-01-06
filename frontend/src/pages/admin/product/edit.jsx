@@ -1,47 +1,69 @@
 import React, { useState, useEffect } from "react";
-import { ArrowLeft, Calendar } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import Sidebar from "../layout_default/Sidebar";
+import ProductService from "../../../service/admin/productService";
+import categoryService from "../../../service/admin/categoryService";
 import "./product.scss";
 
 const EditProduct = () => {
   const navigate = useNavigate();
-  const { id } = useParams(); // Lấy ID từ URL
+  const { id } = useParams();
+  const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
+  const [categories, setCategories] = useState([]);
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
 
-  // State quản lý form
   const [formData, setFormData] = useState({
     name: "",
     description: "",
     price: "",
-    discountPrice: "",
     quantity: "",
-    category: "Son",
-    status: "active",
-    manufactureDate: "",
-    expiryDate: "",
-    image: null,
+    category_id: "",
+    status: 1,
+    brand: "",
+    image: "",
   });
-
-  // Giả lập việc lấy dữ liệu từ API khi vào trang Edit
   useEffect(() => {
-    // Đây là nơi bạn gọi API: axios.get(`/api/products/${id}`)
-    // Dưới đây là dữ liệu giả lập (Mock data)
-    const mockApiData = {
-      name: "Son Lì Velvet Story",
-      description: "Chất son mềm mịn, lâu trôi, lên màu chuẩn.",
-      price: "1250000",
-      discountPrice: "1150000",
-      quantity: "45",
-      category: "Son",
-      status: "active",
-      manufactureDate: "2023-10-01",
-      expiryDate: "2025-10-01",
-      image: "son-velvet-red.jpg", // Tên file ảnh cũ
-    };
-
-    console.log("Đang chỉnh sửa sản phẩm có ID:", id);
-    setFormData(mockApiData);
+    loadProduct();
+    loadCategories();
   }, [id]);
+
+  const loadCategories = async () => {
+    try {
+      const data = await categoryService.getAll();
+      setCategories(data);
+    } catch (error) {
+      console.error("Error loading categories:", error);
+    }
+  };
+
+  const loadProduct = async () => {
+    try {
+      setFetching(true);
+      const data = await ProductService.getProductById(id);
+
+      setFormData({
+        name: data.name || "",
+        description: data.description || "",
+        price: data.price || "",
+        quantity: data.quantity || "",
+        category_id: data.category_id || "",
+        status: data.status || 1,
+        brand: data.brand || "",
+        image: data.image || "",
+      });
+      if (data.image) {
+        setImagePreview(ProductService.getImageUrl(data.image));
+      }
+    } catch (error) {
+      alert(`Lỗi khi tải dữ liệu: ${error.message}`);
+      navigate("/admin/product");
+    } finally {
+      setFetching(false);
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -50,24 +72,80 @@ const EditProduct = () => {
 
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files[0]) {
-      setFormData((prev) => ({ ...prev, image: e.target.files[0].name }));
+      const file = e.target.files[0];
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
-  const handleSubmit = () => {
-    console.log("Updating Product:", id, formData);
-    // Logic gọi API update ở đây: axios.put(`/api/products/${id}`, formData)
-    alert("Cập nhật sản phẩm thành công!");
-    navigate("/admin/product");
+  const validateForm = () => {
+    if (!formData.name.trim()) {
+      alert("Vui lòng nhập tên sản phẩm");
+      return false;
+    }
+    if (!formData.price || parseFloat(formData.price) <= 0) {
+      alert("Vui lòng nhập giá hợp lệ");
+      return false;
+    }
+    if (!formData.quantity || parseInt(formData.quantity) < 0) {
+      alert("Vui lòng nhập số lượng hợp lệ");
+      return false;
+    }
+    if (!formData.category_id) {
+      alert("Vui lòng chọn danh mục");
+      return false;
+    }
+    if (!formData.brand.trim()) {
+      alert("Vui lòng nhập thương hiệu");
+      return false;
+    }
+    return true;
   };
+
+  const handleSubmit = async () => {
+    if (!validateForm()) return;
+
+    try {
+      setLoading(true);
+      const updateData = {
+        name: formData.name.trim(),
+        description: formData.description.trim() || "",
+        price: parseFloat(formData.price),
+        quantity: parseInt(formData.quantity),
+        category_id: parseInt(formData.category_id),
+        status: parseInt(formData.status),
+        brand: formData.brand.trim(),
+      };
+      await ProductService.updateProduct(id, updateData, imageFile);
+      alert("Cập nhật sản phẩm thành công!");
+      navigate("/admin/product");
+    } catch (error) {
+      alert(`Lỗi: ${error.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (fetching) {
+    return (
+      <div className="create-product-page">
+        <Sidebar />
+        <div className="create-product-page__content">
+          <p>Đang tải dữ liệu...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="create-product-page">
-      {/* Lưu ý: Dùng lại class create-product-page của file product.scss để giữ style */}
       <Sidebar />
 
       <div className="create-product-page__content">
-        {/* Header */}
         <div className="create-product-page__header">
           <div
             className="create-product-page__back-link"
@@ -78,10 +156,7 @@ const EditProduct = () => {
           </div>
           <h1 className="create-product-page__title">Chỉnh sửa sản phẩm</h1>
         </div>
-
-        {/* Form Card */}
         <div className="create-product-page__form-card">
-          {/* Thông tin sản phẩm */}
           <div className="create-product-page__form-group">
             <span className="create-product-page__section-title">
               Thông tin sản phẩm
@@ -101,8 +176,20 @@ const EditProduct = () => {
           </div>
 
           <div className="create-product-page__form-group">
+            <label className="create-product-page__label">Thương hiệu(*)</label>
+            <input
+              type="text"
+              name="brand"
+              className="create-product-page__input"
+              placeholder="Nhập thương hiệu"
+              value={formData.brand}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div className="create-product-page__form-group">
             <label className="create-product-page__label">
-              Mô tả sản phẩm(*)
+              Mô tả sản phẩm
             </label>
             <textarea
               name="description"
@@ -112,54 +199,75 @@ const EditProduct = () => {
               onChange={handleChange}
             ></textarea>
           </div>
-
-          {/* Hình ảnh */}
           <div className="create-product-page__form-group">
             <label className="create-product-page__label">Hình ảnh</label>
+
             <div
               className="create-product-page__upload-area"
               onClick={() => document.getElementById("file-upload").click()}
+              style={{
+                minHeight: imagePreview ? "250px" : "120px",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "15px"
+              }}
             >
               <input
                 id="file-upload"
                 type="file"
                 hidden
+                accept="image/*"
                 onChange={handleFileChange}
               />
-              <button className="create-product-page__upload-btn">
+
+              {imagePreview && (
+                <div style={{ marginBottom: "10px" }}>
+                  <img
+                    src={imagePreview}
+                    alt="Preview"
+                    style={{
+                      maxWidth: "200px",
+                      maxHeight: "200px",
+                      objectFit: "cover",
+                      borderRadius: "8px",
+                      border: "2px solid #e0e0e0"
+                    }}
+                    onError={(e) => {
+                      e.target.src = "https://via.placeholder.com/200";
+                    }}
+                  />
+                </div>
+              )}
+
+              <button className="create-product-page__upload-btn" type="button">
                 Change File
               </button>
               <span className="create-product-page__upload-text">
-                {formData.image
-                  ? `Current: ${formData.image}`
-                  : "Or drag and drop files"}
+                {imageFile
+                  ? `Selected: ${imageFile.name}`
+                  : formData.image
+                    ? `Current: ${formData.image}`
+                    : "Or drag and drop files"}
               </span>
             </div>
           </div>
-
-          {/* Giá & Số lượng */}
           <div className="create-product-page__form-group">
-            <label className="create-product-page__section-title">Giá</label>
+            <label className="create-product-page__section-title">
+              Giá & Số lượng
+            </label>
             <div className="create-product-page__row-3">
               <div>
                 <label className="create-product-page__label">Đơn giá(*)</label>
                 <input
-                  type="text"
+                  type="number"
                   name="price"
                   className="create-product-page__input"
                   placeholder="0"
+                  min="0"
+                  step="1000"
                   value={formData.price}
-                  onChange={handleChange}
-                />
-              </div>
-              <div>
-                <label className="create-product-page__label">Giảm giá</label>
-                <input
-                  type="text"
-                  name="discountPrice"
-                  className="create-product-page__input"
-                  placeholder="0"
-                  value={formData.discountPrice}
                   onChange={handleChange}
                 />
               </div>
@@ -172,125 +280,107 @@ const EditProduct = () => {
                   name="quantity"
                   className="create-product-page__input"
                   placeholder="0"
+                  min="0"
                   value={formData.quantity}
                   onChange={handleChange}
                 />
               </div>
             </div>
           </div>
-
-          {/* Danh mục & Trạng thái */}
           <div className="create-product-page__row-2 create-product-page__form-group">
             <div>
-              <label className="create-product-page__label">Danh mục</label>
+              <label className="create-product-page__label">Danh mục(*)</label>
               <select
-                name="category"
+                name="category_id"
                 className="create-product-page__select"
-                value={formData.category}
+                value={formData.category_id}
                 onChange={handleChange}
               >
-                <option value="Son">Son</option>
-                <option value="Kem nền">Kem nền</option>
-                <option value="Phấn phủ">Phấn phủ</option>
-                <option value="Mắt">Mắt</option>
+                <option value="">Chọn danh mục</option>
+                {categories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
               </select>
             </div>
             <div>
               <label className="create-product-page__label">Trạng thái</label>
               <div className="create-product-page__radio-group">
                 <label
-                  className={`create-product-page__radio-label ${
-                    formData.status === "active" ? "active" : ""
-                  }`}
+                  className={`create-product-page__radio-label ${formData.status === 1 ? "active" : ""
+                    }`}
                 >
                   <input
                     type="radio"
                     name="status"
-                    value="active"
-                    checked={formData.status === "active"}
-                    onChange={handleChange}
+                    value="1"
+                    checked={formData.status === 1}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        status: parseInt(e.target.value),
+                      }))
+                    }
                   />
-                  Hoạt động
+                  Đang bán
                 </label>
                 <label
-                  className={`create-product-page__radio-label ${
-                    formData.status === "inactive" ? "active" : ""
-                  }`}
+                  className={`create-product-page__radio-label ${formData.status === 2 ? "active" : ""
+                    }`}
                 >
                   <input
                     type="radio"
                     name="status"
-                    value="inactive"
-                    checked={formData.status === "inactive"}
-                    onChange={handleChange}
+                    value="2"
+                    checked={formData.status === 2}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        status: parseInt(e.target.value),
+                      }))
+                    }
                   />
-                  Không hoạt động
+                  Sắp hết
                 </label>
-              </div>
-            </div>
-          </div>
-
-          {/* Ngày sản xuất & Hạn sử dụng */}
-          <div
-            className="create-product-page__row-2 create-product-page__form-group"
-            style={{ marginBottom: 0 }}
-          >
-            <div>
-              <label className="create-product-page__label">
-                Ngày sản xuất
-              </label>
-              <div className="create-product-page__date-input-wrapper">
-                <input
-                  type="text"
-                  name="manufactureDate"
-                  className="create-product-page__input"
-                  placeholder="Chọn ngày"
-                  onFocus={(e) => (e.target.type = "date")}
-                  onBlur={(e) => (e.target.type = "text")}
-                  value={formData.manufactureDate}
-                  onChange={handleChange}
-                />
-                <Calendar
-                  size={18}
-                  className="create-product-page__date-icon"
-                />
-              </div>
-            </div>
-            <div>
-              <label className="create-product-page__label">Hạn sử dụng</label>
-              <div className="create-product-page__date-input-wrapper">
-                <input
-                  type="text"
-                  name="expiryDate"
-                  className="create-product-page__input"
-                  placeholder="Chọn ngày"
-                  onFocus={(e) => (e.target.type = "date")}
-                  onBlur={(e) => (e.target.type = "text")}
-                  value={formData.expiryDate}
-                  onChange={handleChange}
-                />
-                <Calendar
-                  size={18}
-                  className="create-product-page__date-icon"
-                />
+                <label
+                  className={`create-product-page__radio-label ${formData.status === 3 ? "active" : ""
+                    }`}
+                >
+                  <input
+                    type="radio"
+                    name="status"
+                    value="3"
+                    checked={formData.status === 3}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        status: parseInt(e.target.value),
+                      }))
+                    }
+                  />
+                  Hết hàng
+                </label>
               </div>
             </div>
           </div>
         </div>
-
-        {/* Footer Actions */}
         <div className="create-product-page__bottom-actions">
           <button
+            type="button"
             className="create-product-page__btn create-product-page__btn--cancel"
             onClick={() => navigate(-1)}
+            disabled={loading}
           >
             Hủy
           </button>
           <button
+            type="button"
             className="create-product-page__btn create-product-page__btn--save"
             onClick={handleSubmit}
+            disabled={loading}
           >
-            Cập nhật
+            {loading ? "Đang cập nhật..." : "Cập nhật"}
           </button>
         </div>
       </div>

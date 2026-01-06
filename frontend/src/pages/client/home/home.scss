@@ -1,4 +1,3 @@
-/* Keyframes cho animation mượt */
 @keyframes fadeInUp {
     from {
         opacity: 0;
@@ -45,7 +44,6 @@
     }
 }
 
-/* Áp dụng animation entrance cho toàn bộ page */
 .home>section {
     opacity: 0;
     animation: fadeInUp 1s ease-out forwards;
@@ -91,7 +89,6 @@ html {
     padding: 0 2rem;
 }
 
-// Hero Section
 .hero {
     position: relative;
     height: 500px;
@@ -192,7 +189,6 @@ html {
     }
 }
 
-// Featured Products Section
 .featured {
     padding: 5rem 0;
     background-color: white;
@@ -267,7 +263,6 @@ html {
     }
 }
 
-// Product Card
 .product-card {
     background: white;
     overflow: hidden;
@@ -277,7 +272,6 @@ html {
     opacity: 0;
     animation: fadeInUp 0.8s ease-out forwards;
 
-    // Stagger animation cho từng card
     &:nth-child(1) {
         animation-delay: 0.2s;
     }
@@ -357,7 +351,6 @@ html {
     }
 }
 
-// Premium Section
 .premium {
     padding: 5rem 0;
     background-color: #f8f8f8;
@@ -456,7 +449,6 @@ html {
     }
 }
 
-// Seasonal Section
 .seasonal {
     padding: 5rem 0;
     background-color: white;
@@ -508,7 +500,6 @@ html {
     }
 }
 
-// Seasonal Card
 .seasonal-card {
     background: white;
     overflow: hidden;
@@ -587,5 +578,134 @@ html {
         font-weight: 400;
         opacity: 0.9;
         margin: 0;
+    }
+}
+
+.product-card {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    transition: transform 0.3s, box-shadow 0.3s;
+
+    &:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+}
+
+.featured__loading,
+.loading-state {
+    text-align: center;
+    padding: 60px 20px;
+
+    .spinner {
+        width: 50px;
+        height: 50px;
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #333;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 20px;
+    }
+
+    p {
+        font-size: 16px;
+        color: #666;
+    }
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.featured__error,
+.error-state {
+    text-align: center;
+    padding: 60px 20px;
+    background: #fff3f3;
+    border-radius: 8px;
+    margin: 20px 0;
+
+    .error-message,
+    p {
+        color: #d32f2f;
+        font-size: 16px;
+        margin-bottom: 20px;
+    }
+
+    .retry-button,
+    .back-btn {
+        background: #333;
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        font-size: 14px;
+        cursor: pointer;
+        border-radius: 4px;
+        transition: background 0.3s;
+        text-decoration: none;
+        display: inline-block;
+
+        &:hover {
+            background: #555;
+        }
+    }
+}
+
+.featured__empty {
+    text-align: center;
+    padding: 60px 20px;
+
+    p {
+        font-size: 16px;
+        color: #999;
+    }
+}
+
+.product-card__image {
+    width: 100%;
+    height: 300px;
+    overflow: hidden;
+    background: #f5f5f5;
+
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s;
+    }
+
+    &:hover img {
+        transform: scale(1.05);
+    }
+}
+
+.product-detail__related-image {
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+}
+
+.product-detail__main-image {
+    img {
+        width: 100%;
+        height: auto;
+        object-fit: cover;
+    }
+}
+
+.product-detail__thumbnail {
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
     }
 }

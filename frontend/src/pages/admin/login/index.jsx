@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import './login.scss';
 import { LuEye, LuEyeOff, LuArrowRight } from "react-icons/lu";
-import adminService from '../../../service/authService';
+import adminService from '../../../service/admin/authService';
 
 const AdminLogin = () => {
     const navigate = useNavigate();

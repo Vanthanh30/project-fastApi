@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Upload, Eye, EyeOff } from 'lucide-react';
-import Sidebar from '../layout_default/sidebar';
+import Sidebar from '../layout_default/Sidebar';
 import './account.scss';
-import accountService from '../../../service/accountService';
+import accountService from '../../../service/admin/accountService';
 
 const AccountEdit = () => {
     const navigate = useNavigate();

@@ -1,57 +1,55 @@
-import React, { useEffect } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
-import LayoutDefault from "../layout_default/layout_default";
-import "./home.scss";
+import React, { useState, useEffect } from 'react';
+import { useSearchParams, useNavigate, Link } from 'react-router-dom';
+import LayoutDefault from '../layout_default/layout_default';
+import ChatboxAI from '../../../components/Chatbox/ChatboxAI';
+import ProductService from '../../../service/client/productService';
+import './home.scss';
 
 const Home = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const [featuredProducts, setFeaturedProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const accessToken = searchParams.get("access_token");
 
     if (accessToken) {
       localStorage.setItem("access_token", accessToken);
-
       navigate("/", { replace: true });
-
       window.location.reload();
     }
   }, [searchParams, navigate]);
-  const featuredProducts = [
-    {
-      id: 1,
-      name: "Kem Nền Ambient Soft Glow",
-      category: "Kem nền dưỡng da",
-      price: "1,650,000",
-      tag: "MỚI NHẤT",
-      image: "/products/foundation.jpg",
-    },
-    {
-      id: 2,
-      name: "Son Thỏi Lì Velvet Matte",
-      category: "Son thỏi cao cấp",
-      price: "950,000",
-      tag: null,
-      image: "/products/lipstick.jpg",
-    },
-    {
-      id: 3,
-      name: "Mascara Caution Extreme Lash",
-      category: "Dưỡng mi dài",
-      price: "730,000",
-      tag: null,
-      image: "/products/mascara.jpg",
-    },
-    {
-      id: 4,
-      name: "Phấn Má Hồng Ambient",
-      category: "Phấn má phun sương",
-      price: "1,125,000",
-      tag: null,
-      image: "/products/blush.jpg",
-    },
-  ];
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const fetchProducts = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const products = await ProductService.getFeaturedProducts(4);
+
+      const formatted = products.map(product => ({
+        id: product.id,
+        name: product.name,
+        category: product.category_name || product.brand || 'Sản phẩm',
+        price: ProductService.formatPrice(product.price),
+        tag: product.status === 'active' && product.id ? 'MỚI NHẤT' : null,
+        image: ProductService.getImageUrl(product.image),
+        rawPrice: product.price
+      }));
+
+      setFeaturedProducts(formatted);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const seasonalProducts = [
     {
@@ -80,7 +78,6 @@ const Home = () => {
   return (
     <LayoutDefault>
       <div className="home">
-        {/* Hero Section */}
         <section className="hero">
           <div className="hero__image-bg"></div>
           <div className="hero__content">
@@ -97,12 +94,10 @@ const Home = () => {
             <button className="hero__cta">MUA BỘ SƯU TẬP</button>
           </div>
         </section>
-
-        {/* Featured Products Section */}
         <section className="featured">
           <div className="container">
             <div className="featured__header">
-              <h2 className="featured__title">TÌNH HOẠ BIỂU TƯỢNG</h2>
+              <h2 className="featured__title">TINH HOA BIỂU TƯỢNG</h2>
               <p className="featured__subtitle">
                 Những sản phẩm được yêu thích nhất, luôn chạy hàng đầu trên các
                 bảng xếp hạng
@@ -112,27 +107,54 @@ const Home = () => {
               </a>
             </div>
 
-            <div className="featured__grid">
-              {featuredProducts.map((product) => (
-                <div key={product.id} className="product-card">
-                  {product.tag && (
-                    <span className="product-card__tag">{product.tag}</span>
-                  )}
-                  <div className="product-card__image">
-                    <div className="product-card__image-placeholder"></div>
-                  </div>
-                  <div className="product-card__info">
-                    <h3 className="product-card__name">{product.name}</h3>
-                    <p className="product-card__category">{product.category}</p>
-                    <p className="product-card__price">{product.price}₫</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+            {loading ? (
+              <div className="featured__loading">
+                <div className="spinner"></div>
+                <p>Đang tải sản phẩm...</p>
+              </div>
+            ) : error ? (
+              <div className="featured__error">
+                <p className="error-message">{error}</p>
+                <button onClick={fetchProducts} className="retry-button">
+                  Thử lại
+                </button>
+              </div>
+            ) : featuredProducts.length === 0 ? (
+              <div className="featured__empty">
+                <p>Chưa có sản phẩm nào</p>
+              </div>
+            ) : (
+              <div className="featured__grid">
+                {featuredProducts.map((product) => (
+                  <Link
+                    to={`/product/${product.id}`}
+                    key={product.id}
+                    className="product-card"
+                  >
+                    {product.tag && (
+                      <span className="product-card__tag">{product.tag}</span>
+                    )}
+                    <div className="product-card__image">
+                      <img
+                        src={product.image}
+                        alt={product.name}
+                        loading="lazy"
+                        onError={(e) => {
+                          e.target.src = 'https://via.placeholder.com/300x300?text=No+Image';
+                        }}
+                      />
+                    </div>
+                    <div className="product-card__info">
+                      <h3 className="product-card__name">{product.name}</h3>
+                      <p className="product-card__category">{product.category}</p>
+                      <p className="product-card__price">{product.price}₫</p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
         </section>
-
-        {/* Premium Section */}
         <section className="premium">
           <div className="container">
             <div className="premium__content">
@@ -140,7 +162,7 @@ const Home = () => {
                 <div className="premium__image-placeholder"></div>
               </div>
               <div className="premium__text">
-                <span className="premium__label">THIẾT LÝ ĐỔA CHÚNG TÔI</span>
+                <span className="premium__label">TRIẾT LÝ CỦA CHÚNG TÔI</span>
                 <h2 className="premium__title">
                   Sang Trọng Thuần Khiết.
                   <br />
@@ -159,8 +181,6 @@ const Home = () => {
             </div>
           </div>
         </section>
-
-        {/* Seasonal Collection */}
         <section className="seasonal">
           <div className="container">
             <div className="seasonal__header">
@@ -179,9 +199,7 @@ const Home = () => {
                     <div className="seasonal-card__image-placeholder"></div>
                     <div className="seasonal-card__overlay">
                       <div className="seasonal-card__text">
-                        <h3 className="seasonal-card__category">
-                          {item.category}
-                        </h3>
+                        <h3 className="seasonal-card__category">{item.category}</h3>
                         <p className="seasonal-card__title">{item.title}</p>
                       </div>
                     </div>
@@ -192,6 +210,7 @@ const Home = () => {
           </div>
         </section>
       </div>
+      <ChatboxAI />
     </LayoutDefault>
   );
 };
