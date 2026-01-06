@@ -24,6 +24,9 @@ const ProductDetail = () => {
         info: false
     });
 
+    // Gray placeholder SVG
+    const grayPlaceholder = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="300" height="300"%3E%3Crect width="300" height="300" fill="%23e5e7eb"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="%239ca3af"%3ENo Image%3C/text%3E%3C/svg%3E';
+
     useEffect(() => {
         fetchProductDetail();
     }, [id]);
@@ -68,21 +71,34 @@ const ProductDetail = () => {
     };
 
     const handleAddToCart = async () => {
+        // Check if user is logged in first
+        const token = localStorage.getItem("access_token");
+        if (!token) {
+            const shouldRedirect = window.confirm(
+                "Bạn cần đăng nhập để thêm sản phẩm vào giỏ hàng. Chuyển đến trang đăng nhập?"
+            );
+            if (shouldRedirect) {
+                window.location.href = `/login?redirect=/product/${id}`;
+            }
+            return;
+        }
+
         try {
             setAddingToCart(true);
-
-            // Gọi API thêm vào giỏ hàng
-            const response = await cartService.addToCart(product.id, quantity);
-
-            // Hiển thị thông báo thành công
+            await cartService.addToCart(product.id, quantity);
             alert(`Đã thêm ${quantity} sản phẩm vào giỏ hàng!`);
-
-            // Reset số lượng về 1
             setQuantity(1);
-
         } catch (error) {
             console.error('Lỗi khi thêm vào giỏ hàng:', error);
-            alert(error.message || 'Không thể thêm vào giỏ hàng. Vui lòng thử lại!');
+
+            // Better error messages
+            if (error.message.includes("đăng nhập")) {
+                alert(error.message);
+            } else if (error.response?.status === 401) {
+                alert("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+            } else {
+                alert(error.response?.data?.message || error.message || 'Không thể thêm vào giỏ hàng. Vui lòng thử lại!');
+            }
         } finally {
             setAddingToCart(false);
         }
@@ -93,6 +109,13 @@ const ProductDetail = () => {
             ...prev,
             [key]: !prev[key]
         }));
+    };
+
+    const getImageUrl = (imagePath) => {
+        if (!imagePath || imagePath === 'null' || imagePath === 'NULL') {
+            return grayPlaceholder;
+        }
+        return ProductService.getImageUrl(imagePath);
     };
 
     if (loading) {
@@ -145,20 +168,20 @@ const ProductDetail = () => {
                         <div className="product-detail__gallery">
                             <div className="product-detail__main-image">
                                 <img
-                                    src={ProductService.getImageUrl(product.image)}
+                                    src={getImageUrl(product.image)}
                                     alt={product.name}
                                     onError={(e) => {
-                                        e.target.src = 'https://via.placeholder.com/600x600?text=No+Image';
+                                        e.target.src = grayPlaceholder;
                                     }}
                                 />
                             </div>
                             <div className="product-detail__thumbnails">
                                 <div className="product-detail__thumbnail active">
                                     <img
-                                        src={ProductService.getImageUrl(product.image)}
+                                        src={getImageUrl(product.image)}
                                         alt={product.name}
                                         onError={(e) => {
-                                            e.target.src = 'https://via.placeholder.com/100x100?text=No+Image';
+                                            e.target.src = grayPlaceholder;
                                         }}
                                     />
                                 </div>
@@ -216,7 +239,6 @@ const ProductDetail = () => {
                                 </button>
                             </div>
 
-                            {/* Phần còn lại giữ nguyên */}
                             <div className="product-detail__accordion">
                                 <div className="product-detail__accordion-item">
                                     <button
@@ -278,10 +300,10 @@ const ProductDetail = () => {
                                     >
                                         <div className="product-detail__related-image">
                                             <img
-                                                src={ProductService.getImageUrl(item.image)}
+                                                src={getImageUrl(item.image)}
                                                 alt={item.name}
                                                 onError={(e) => {
-                                                    e.target.src = 'https://via.placeholder.com/300x300?text=No+Image';
+                                                    e.target.src = grayPlaceholder;
                                                 }}
                                             />
                                         </div>

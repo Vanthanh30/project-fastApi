@@ -12,6 +12,7 @@ class CartItemResponse(BaseModel):
     id: int
     product_id: int
     name: str
+    image: str
     price: float
     quantity: int
     total: float  

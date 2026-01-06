@@ -11,6 +11,9 @@ const Cart = () => {
     const [selectedIds, setSelectedIds] = useState([]);
     const navigate = useNavigate();
 
+    // Gray placeholder SVG
+    const grayPlaceholder = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="120" height="120"%3E%3Crect width="120" height="120" fill="%23e5e7eb"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="%239ca3af"%3ENo Image%3C/text%3E%3C/svg%3E';
+
     useEffect(() => {
         fetchCart();
     }, []);
@@ -18,6 +21,7 @@ const Cart = () => {
     const fetchCart = async () => {
         try {
             const res = await cartService.getCart();
+            console.log("Cart response:", res); // Debug: xem structure của response
             setCartItems(Array.isArray(res.items) ? res.items : []);
         } catch (error) {
             console.error("Fetch cart failed:", error);
@@ -63,6 +67,23 @@ const Cart = () => {
 
     const formatPrice = (price) =>
         Number(price).toLocaleString("vi-VN") + "₫";
+
+    // Helper function to get image URL with better fallback logic
+    const getImageUrl = (item) => {
+        // Backend now returns 'image' field directly in CartItemResponse
+        const imagePath = item.image;
+
+        if (!imagePath || imagePath === 'null' || imagePath === 'NULL') {
+            return grayPlaceholder;
+        }
+
+        return ProductService.getImageUrl(imagePath);
+    };
+
+    // Helper function to get product name
+    const getProductName = (item) => {
+        return item.name || 'Sản phẩm';
+    };
 
     const subtotal = cartItems
         .filter(item => selectedIds.includes(item.id))
@@ -122,17 +143,17 @@ const Cart = () => {
 
                                             <div className="cart-item__image">
                                                 <img
-                                                    src={ProductService.getImageUrl(item.image || item.product_image)}
-                                                    alt={item.name || item.product_name}
+                                                    src={getImageUrl(item)}
+                                                    alt={getProductName(item)}
                                                     onError={(e) => {
-                                                        e.target.src = 'https://via.placeholder.com/120x120?text=No+Image';
+                                                        e.target.src = grayPlaceholder;
                                                     }}
                                                 />
                                             </div>
 
                                             <div className="cart-item__details">
                                                 <h3 className="cart-item__name">
-                                                    {item.name || item.product_name}
+                                                    {getProductName(item)}
                                                 </h3>
 
                                                 <div className="cart-item__actions">
@@ -207,7 +228,22 @@ const Cart = () => {
                                 </p>
 
                                 <button
-                                    onClick={() => navigate('/payment')}
+                                    onClick={() => {
+                                        if (selectedIds.length === 0) {
+                                            alert("Vui lòng chọn ít nhất 1 sản phẩm để thanh toán");
+                                            return;
+                                        }
+                                        // Pass selected items to payment page
+                                        const selectedItems = cartItems.filter(item =>
+                                            selectedIds.includes(item.id)
+                                        );
+                                        navigate('/payment', {
+                                            state: {
+                                                selectedItems,
+                                                total
+                                            }
+                                        });
+                                    }}
                                     className="cart__checkout-btn"
                                     disabled={selectedIds.length === 0}
                                 >

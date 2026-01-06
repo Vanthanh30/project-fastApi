@@ -15,6 +15,21 @@ api.interceptors.request.use((config) => {
     return config;
 });
 
+api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.response?.status === 401) {
+            localStorage.removeItem("access_token");
+            localStorage.removeItem("user");
+            const message = "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.";
+            window.location.href = "/login?redirect=" + encodeURIComponent(window.location.pathname);
+
+            return Promise.reject(new Error(message));
+        }
+        return Promise.reject(error);
+    }
+);
+
 const cartService = {
     addToCart: (productId, quantity) =>
         api.post("/cart/add", { product_id: productId, quantity }).then(res => res.data),
