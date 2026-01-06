@@ -13,7 +13,11 @@ const OrderPage = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortType, setSortType] = useState("newest");
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 5;
   useEffect(() => {
     loadData();
   }, []);
@@ -141,10 +145,36 @@ const OrderPage = () => {
     }
   };
 
-  const filteredOrders =
-    activeTab === "all"
-      ? orders
-      : orders.filter((order) => order.status === activeTab);
+  const processedOrders = orders
+    // 🔍 Search
+    .filter((order) => {
+      const keyword = searchTerm.toLowerCase();
+      return (
+        order.id.toString().includes(keyword) ||
+        order.full_name.toLowerCase().includes(keyword) ||
+        order.email.toLowerCase().includes(keyword)
+      );
+    })
+    // 📌 Filter theo tab
+    .filter((order) =>
+      activeTab === "all" ? true : order.status === activeTab
+    )
+    // 🔽 Sort
+    .sort((a, b) => {
+      const dateA = new Date(a.created_at);
+      const dateB = new Date(b.created_at);
+      return sortType === "newest"
+        ? dateB - dateA
+        : dateA - dateB;
+    });
+  const totalItems = processedOrders.length;
+  const totalPages = Math.ceil(totalItems / pageSize);
+
+  const paginatedOrders = processedOrders.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  );
+
 
   return (
     <div className="order-page">
@@ -160,15 +190,29 @@ const OrderPage = () => {
         <div className="order-page__toolbar">
           <div className="order-page__search">
             <Search size={18} />
-            <input type="text" placeholder="Tìm theo ID, Tên khách hàng..." />
+            <input
+              type="text"
+              placeholder="Tìm theo ID, Tên khách hàng..."
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(1);
+              }}
+            />
           </div>
           <div className="order-page__filter-group">
             <span>Trạng thái:</span>
-            <select>
-              <option>Tất cả</option>
-              <option>Mới nhất</option>
-              <option>Cũ nhất</option>
+            <select
+              value={sortType}
+              onChange={(e) => {
+                setSortType(e.target.value);
+                setCurrentPage(1);
+              }}
+            >
+              <option value="newest">Mới nhất</option>
+              <option value="oldest">Cũ nhất</option>
             </select>
+
           </div>
         </div>
 
@@ -207,7 +251,7 @@ const OrderPage = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredOrders.map((order) => (
+              {paginatedOrders.map((order) => (
                 <tr key={order.id}>
                   <td>
                     <input type="checkbox" className="custom-checkbox" />
@@ -250,17 +294,42 @@ const OrderPage = () => {
                 marginRight: "auto",
               }}
             >
-              Hiển thị 1 đến 5 của 128 kết quả
+              Hiển thị {(currentPage - 1) * pageSize + 1} đến{" "}
+              {Math.min(currentPage * pageSize, totalItems)} của {totalItems} kết quả
             </span>
-            <button className="order-page__page-btn">&lt;</button>
-            <button className="order-page__page-btn order-page__page-btn--active">
-              1
+
+            <button
+              className="order-page__page-btn"
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage((p) => p - 1)}
+            >
+              &lt;
             </button>
-            <button className="order-page__page-btn">2</button>
-            <button className="order-page__page-btn">...</button>
-            <button className="order-page__page-btn">24</button>
-            <button className="order-page__page-btn">&gt;</button>
+
+            {Array.from({ length: totalPages }, (_, i) => i + 1)
+              .slice(0, 5)
+              .map((page) => (
+                <button
+                  key={page}
+                  className={`order-page__page-btn ${currentPage === page
+                    ? "order-page__page-btn--active"
+                    : ""
+                    }`}
+                  onClick={() => setCurrentPage(page)}
+                >
+                  {page}
+                </button>
+              ))}
+
+            <button
+              className="order-page__page-btn"
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage((p) => p + 1)}
+            >
+              &gt;
+            </button>
           </div>
+
         </div>
       </div>
     </div>
