@@ -5,6 +5,7 @@ from typing import Optional
 from app.db.base import get_db
 from app.middleware.authenticate import authenticate
 from app.models.cart import Cart
+from app.models.cart_item import CartItem
 from app.models.order import Order, OrderStatus
 from app.models.order_item import OrderItem
 from app.schemas.order import CreateOrderRequest
@@ -25,15 +26,25 @@ def create_order(
     if not cart:
         raise HTTPException(404, "Cart not found")
 
-    if not cart.items:
-        raise HTTPException(400, "Cart is empty")
+    selected_items = (
+        db.query(CartItem)
+        .filter(
+            CartItem.cart_id == cart.id,
+            CartItem.id.in_(data.cart_item_ids)
+        )
+        .all()
+    )
+
+    if not selected_items:
+        raise HTTPException(400, "No items selected")
 
     try:
         order = create_order_from_cart(
             db=db,
             cart=cart,
             user_id=user.id,
-            data=data
+            data=data,
+            selected_item_ids=data.cart_item_ids
         )
         return {
             "message": "Order created successfully",

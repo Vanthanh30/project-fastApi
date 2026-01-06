@@ -6,29 +6,30 @@ from app.models.cart_item import CartItem
 from app.models.cart import Cart
 from app.models.product import Product
 from datetime import datetime
+from typing import List
 
 
-def create_order_from_cart(db: Session, cart: Cart, user_id: int, data):
-    if not cart.items or len(cart.items) == 0:
-        raise HTTPException(400, "Cart is empty")
-
-    # 1️⃣ Tạo order
-    order = Order(
-        user_id=user_id,
-        full_name=data.full_name,
-        phone=data.phone,
-        email=data.email,
-        address=data.address,
-        payment_method=data.payment_method,
-        status="Chờ xác nhận",
-        total=cart.total_cart,
-        created_at=datetime.now()
+def create_order_from_cart(
+    db: Session,
+    cart: Cart,
+    user_id: int,
+    data,
+    selected_item_ids: List[int],
+):
+    selected_items = (
+        db.query(CartItem)
+        .filter(
+            CartItem.cart_id == cart.id,
+            CartItem.id.in_(selected_item_ids)
+        )
+        .all()
     )
-    db.add(order)
-    db.flush()  # lấy order.id
 
-    # 2️⃣ Tạo order_item + trừ kho
-    for item in cart.items:
+    if not selected_items:
+        raise HTTPException(400, "No items selected")
+
+    order_total = 0
+    for item in selected_items:
         product: Product = item.product
 
         if product.quantity < item.quantity:
@@ -37,32 +38,49 @@ def create_order_from_cart(db: Session, cart: Cart, user_id: int, data):
                 f"Sản phẩm {product.name} không đủ số lượng"
             )
 
-        # trừ kho
+        order_total += product.price * item.quantity
+
+    order = Order(
+        user_id=user_id,
+        full_name=data.full_name,
+        phone=data.phone,
+        email=data.email,
+        address=data.address,
+        payment_method=data.payment_method,
+        status="Chờ xác nhận",
+        total=order_total,
+        created_at=datetime.now()
+    )
+
+    db.add(order)
+    db.flush()  
+
+    for item in selected_items:
+        product: Product = item.product
+
         product.quantity -= item.quantity
 
-        # cập nhật status product
         if product.quantity == 0:
-            product.status = 3  # Hết hàng
+            product.status = 3
         elif product.quantity < 5:
-            product.status = 2  # Sắp hết
+            product.status = 2
         else:
-            product.status = 1  # Đang bán
+            product.status = 1
 
-        order_item = OrderItem(
-            order_id=order.id,
-            product_id=product.id,
-            quantity=item.quantity,
-            price=product.price
+        db.add(
+            OrderItem(
+                order_id=order.id,
+                product_id=product.id,
+                quantity=item.quantity,
+                price=product.price
+            )
         )
-        db.add(order_item)
 
-    # 3️⃣ XÓA CART ITEMS (KHÔNG XOÁ CART)
-    db.query(CartItem).filter(
-        CartItem.cart_id == cart.id
-    ).delete()
+        db.delete(item)
 
-    # 4️⃣ Reset cart
-    cart.total_cart = 0
+    cart.total_cart = sum(
+        i.quantity * i.product.price for i in cart.items
+    )
 
     db.commit()
     db.refresh(order)

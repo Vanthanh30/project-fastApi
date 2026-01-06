@@ -15,6 +15,7 @@ class CreateOrderRequest(BaseModel):
     email: str
     address: str
     payment_method: PaymentMethod
+    cart_item_ids: List[int]
 
 class OrderItemResponse(BaseModel):
     product_id: int
