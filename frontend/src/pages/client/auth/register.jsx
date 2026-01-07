@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { LuEye, LuEyeOff } from "react-icons/lu";
 import axios from "axios";
+import Alert from "../../../components/Alert/Alert";
 import "./auth.scss";
 
 const Register = () => {
@@ -15,7 +16,10 @@ const Register = () => {
   });
 
   const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -24,13 +28,20 @@ const Register = () => {
       [name]: type === "checkbox" ? checked : value,
     }));
     if (errorMessage) setErrorMessage("");
+    if (successMessage) setSuccessMessage("");
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Validation phía client
     if (formData.password !== formData.confirmPassword) {
       setErrorMessage("Mật khẩu xác nhận không khớp!");
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      setErrorMessage("Mật khẩu phải có ít nhất 6 ký tự!");
       return;
     }
 
@@ -41,6 +52,7 @@ const Register = () => {
 
     setIsLoading(true);
     setErrorMessage("");
+    setSuccessMessage("");
 
     try {
       const payload = {
@@ -54,14 +66,38 @@ const Register = () => {
         payload
       );
 
-      const { access_token } = response.data;
-      localStorage.setItem("access_token", access_token);
+      setSuccessMessage(
+        "Đăng ký thành công! Email xác nhận đã được gửi. Vui lòng kiểm tra hộp thư để xác nhận tài khoản."
+      );
 
-      navigate("/");
+      // Clear form sau khi đăng ký thành công
+      setFormData({
+        fullName: "",
+        email: "",
+        password: "",
+        confirmPassword: "",
+        agreeToTerms: false,
+      });
+
+      // Redirect về login sau 4 giây
+      setTimeout(() => {
+        navigate("/login", {
+          state: {
+            message: "Vui lòng xác nhận email trước khi đăng nhập",
+            registeredEmail: payload.email
+          },
+        });
+      }, 4000);
+
     } catch (error) {
       console.error("Register failed:", error);
       if (error.response && error.response.data) {
-        setErrorMessage(error.response.data.detail || "Đăng ký thất bại");
+        const detail = error.response.data.detail;
+        if (detail === "Email already exists") {
+          setErrorMessage("Email này đã được đăng ký. Vui lòng sử dụng email khác hoặc đăng nhập.");
+        } else {
+          setErrorMessage(detail || "Đăng ký thất bại");
+        }
       } else {
         setErrorMessage("Không thể kết nối đến server");
       }
@@ -69,9 +105,6 @@ const Register = () => {
       setIsLoading(false);
     }
   };
-
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   return (
     <div className="auth">
@@ -90,24 +123,33 @@ const Register = () => {
           <div className="auth__section">
             <h2 className="auth__title">Đăng Ký</h2>
             <p className="auth__subtitle">
-              Tạo tài khoản mới để trải nghiệm tích điểm và nhận ưu đãi độc
-              quyền
+              Tạo tài khoản mới để trải nghiệm tích điểm và nhận ưu đãi độc quyền
             </p>
 
-            {errorMessage && (
-              <div
-                style={{
-                  color: "red",
-                  marginBottom: "15px",
-                  fontSize: "14px",
-                  textAlign: "center",
-                  backgroundColor: "#ffe6e6",
-                  padding: "10px",
-                  borderRadius: "4px",
-                }}
-              >
-                {errorMessage}
+            {/* Success Message */}
+            {successMessage && (
+              <div style={{ position: 'relative' }}>
+                <Alert type="success" message={successMessage} />
+                <div style={{
+                  fontSize: '13px',
+                  color: '#059669',
+                  textAlign: 'center',
+                  marginTop: '-12px',
+                  marginBottom: '16px',
+                  fontWeight: '500'
+                }}>
+                  Đang chuyển đến trang đăng nhập<span className="alert__loading"></span>
+                </div>
               </div>
+            )}
+
+            {/* Error Message */}
+            {errorMessage && (
+              <Alert
+                type="error"
+                message={errorMessage}
+                onClose={() => setErrorMessage("")}
+              />
             )}
 
             <form onSubmit={handleSubmit} className="auth__form">
@@ -121,6 +163,7 @@ const Register = () => {
                   className="auth__input"
                   placeholder="Nguyễn Văn A"
                   required
+                  disabled={isLoading || successMessage}
                 />
               </div>
 
@@ -134,12 +177,12 @@ const Register = () => {
                   className="auth__input"
                   placeholder="example@email.com"
                   required
+                  disabled={isLoading || successMessage}
                 />
               </div>
 
               <div className="auth__form-group">
                 <label className="auth__label">Mật khẩu</label>
-
                 <div className="auth__password-wrapper">
                   <input
                     type={showPassword ? "text" : "password"}
@@ -150,8 +193,8 @@ const Register = () => {
                     placeholder="••••••••"
                     required
                     minLength="6"
+                    disabled={isLoading || successMessage}
                   />
-
                   {showPassword ? (
                     <LuEye
                       className="auth__eye-icon"
@@ -170,7 +213,6 @@ const Register = () => {
 
               <div className="auth__form-group">
                 <label className="auth__label">Xác nhận mật khẩu</label>
-
                 <div className="auth__password-wrapper">
                   <input
                     type={showConfirmPassword ? "text" : "password"}
@@ -181,8 +223,8 @@ const Register = () => {
                     placeholder="••••••••"
                     required
                     minLength="6"
+                    disabled={isLoading || successMessage}
                   />
-
                   {showConfirmPassword ? (
                     <LuEye
                       className="auth__eye-icon"
@@ -207,6 +249,7 @@ const Register = () => {
                     checked={formData.agreeToTerms}
                     onChange={handleChange}
                     required
+                    disabled={isLoading || successMessage}
                   />
                   <span className="auth__checkbox-custom"></span>
                   <span className="auth__checkbox-label">
@@ -225,9 +268,9 @@ const Register = () => {
               <button
                 type="submit"
                 className="auth__submit"
-                disabled={isLoading}
+                disabled={isLoading || successMessage}
               >
-                {isLoading ? "Đang xử lý..." : "Đăng Ký"}
+                {isLoading ? "Đang xử lý..." : successMessage ? "Thành công!" : "Đăng Ký"}
               </button>
 
               <div className="auth__footer">

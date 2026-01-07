@@ -1,18 +1,40 @@
-import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { LuEye, LuEyeOff } from "react-icons/lu";
 import axios from "axios";
+import Alert from "../../../components/Alert/Alert";
 import "./auth.scss";
 
 const Login = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
     rememberMe: false,
   });
   const [errorMessage, setErrorMessage] = useState("");
+  const [infoMessage, setInfoMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+
+  // Kiểm tra message từ register redirect
+  useEffect(() => {
+    if (location.state?.message) {
+      setInfoMessage(location.state.message);
+
+      // Nếu có email từ register, tự động điền vào form
+      if (location.state?.registeredEmail) {
+        setFormData(prev => ({
+          ...prev,
+          email: location.state.registeredEmail
+        }));
+      }
+
+      // Clear state để tránh hiển thị lại khi refresh
+      window.history.replaceState({}, document.title);
+    }
+  }, [location]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -27,6 +49,8 @@ const Login = () => {
     e.preventDefault();
     setIsLoading(true);
     setErrorMessage("");
+    setInfoMessage("");
+
     try {
       const response = await axios.post("http://localhost:8000/auth/login", {
         email: formData.email,
@@ -34,14 +58,27 @@ const Login = () => {
       });
 
       const { access_token } = response.data;
-
       localStorage.setItem("access_token", access_token);
 
       navigate("/");
+
     } catch (error) {
       console.error("Login failed:", error);
+
       if (error.response && error.response.data) {
-        setErrorMessage(error.response.data.detail || "Đăng nhập thất bại");
+        const detail = error.response.data.detail;
+
+        if (error.response.status === 403) {
+          setErrorMessage(
+            "Email chưa được xác nhận. Vui lòng kiểm tra hộp thư và xác nhận email của bạn."
+          );
+        }
+        else if (error.response.status === 401) {
+          setErrorMessage("Email hoặc mật khẩu không chính xác");
+        }
+        else {
+          setErrorMessage(detail || "Đăng nhập thất bại");
+        }
       } else {
         setErrorMessage("Không thể kết nối đến server");
       }
@@ -57,7 +94,7 @@ const Login = () => {
   const handleFacebookLogin = () => {
     window.location.href = "http://127.0.0.1:8000/auth/facebook";
   };
-  const [showPassword, setShowPassword] = useState(false);
+
   return (
     <div className="auth">
       <div className="auth__container">
@@ -68,17 +105,22 @@ const Login = () => {
               Chào mừng trở lại. Vui lòng đăng nhập vào tài khoản của bạn
             </p>
 
+            {/* Info Message */}
+            {infoMessage && (
+              <Alert
+                type="info"
+                message={infoMessage}
+                onClose={() => setInfoMessage("")}
+              />
+            )}
+
+            {/* Error Message */}
             {errorMessage && (
-              <div
-                style={{
-                  color: "red",
-                  marginBottom: "10px",
-                  fontSize: "14px",
-                  textAlign: "center",
-                }}
-              >
-                {errorMessage}
-              </div>
+              <Alert
+                type="error"
+                message={errorMessage}
+                onClose={() => setErrorMessage("")}
+              />
             )}
 
             <div className="auth__social">
@@ -137,6 +179,7 @@ const Login = () => {
                   className="auth__input"
                   placeholder="example@email.com"
                   required
+                  disabled={isLoading}
                 />
               </div>
 
@@ -159,6 +202,7 @@ const Login = () => {
                     className="auth__input auth__input--password"
                     placeholder="••••••••"
                     required
+                    disabled={isLoading}
                   />
 
                   {showPassword ? (
@@ -184,6 +228,7 @@ const Login = () => {
                     name="rememberMe"
                     checked={formData.rememberMe}
                     onChange={handleChange}
+                    disabled={isLoading}
                   />
                   <span className="auth__checkbox-custom"></span>
                   <span className="auth__checkbox-label">

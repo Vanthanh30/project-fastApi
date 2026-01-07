@@ -17,6 +17,16 @@ load_dotenv()
 app = FastAPI()
 
 app.add_middleware(
+    SessionMiddleware,
+    secret_key=settings.SECRET_KEY,
+    session_cookie="session",
+    https_only=False,  
+    max_age=3600, 
+    path="/",     
+    same_site="lax" 
+)
+
+app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173",
@@ -28,19 +38,8 @@ app.add_middleware(
     allow_headers=["*"],  
 )
 
-app.add_middleware(
-    SessionMiddleware,
-    secret_key=settings.SECRET_KEY,
-    session_cookie="session",
-    https_only=False,  
-    max_age=3600, 
-    path="/",     
-    same_site="lax" 
-)
-
 
 Base.metadata.create_all(bind=engine)
-
 app.include_router(auth_google_router)
 app.include_router(auth_facebook_router)
 app.include_router(auth_user_router)
