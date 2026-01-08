@@ -1,25 +1,33 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
-import {
-  ShieldCheck,
-  MapPin,
-  User,
-  CreditCard,
-  Banknote,
-  Building2,
-  Smartphone,
-  Wallet,
-} from "lucide-react";
+import { ShieldCheck, MapPin, User, CreditCard, Banknote } from "lucide-react";
 import LayoutDefault from "../layout_default/layout_default";
 import "./payment.scss";
 
+const API_BASE_URL = "http://localhost:8000";
+
+const CITIES = ["Hà Nội", "TP. Hồ Chí Minh", "Đà Nẵng", "Hải Phòng", "Cần Thơ"];
+
+const PAYMENT_METHOD_MAPPING = {
+  cod: "Thanh toán khi nhận hàng",
+};
+
+const PAYMENT_METHODS = [
+  {
+    id: "cod",
+    name: "Thanh toán khi nhận hàng (COD)",
+    icon: Banknote,
+    description: "Thanh toán bằng tiền mặt khi nhận hàng.",
+  },
+];
+
 const Payment = () => {
   const navigate = useNavigate();
-  const [cartItems, setCartItems] = useState([]);
-  const [totalCartPrice, setTotalCartPrice] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
   const location = useLocation();
+
+  const [cartItems, setCartItems] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -27,7 +35,6 @@ const Payment = () => {
     phone: "",
     address: "",
     city: "",
-    district: "",
     ward: "",
     note: "",
     paymentMethod: "cod",
@@ -35,75 +42,9 @@ const Payment = () => {
 
   const [errors, setErrors] = useState({});
 
-  const cities = [
-    "Hà Nội",
-    "TP. Hồ Chí Minh",
-    "Đà Nẵng",
-    "Hải Phòng",
-    "Cần Thơ",
-  ];
-
-  const PAYMENT_METHOD_MAPPING = {
-    cod: "Thanh toán khi nhận hàng",
-    bank: "Chuyển khoản ngân hàng",
-    momo: "Ví Momo",
-    card: "Thẻ tín dụng ghi nợ",
-  };
-
-  const paymentMethods = [
-    {
-      id: "cod",
-      name: "Thanh toán khi nhận hàng (COD)",
-      icon: Banknote,
-      description: "",
-    },
-    {
-      id: "bank",
-      name: "Chuyển khoản ngân hàng",
-      icon: Building2,
-      description: "",
-      logos: [
-        { name: "Vietcombank", image: "../src/assets/bank1.jpg" },
-        { name: "Techcombank", image: "../src/assets/bank2.png" },
-        { name: "VPBank", image: "../src/assets/bank3.jpg" },
-        { name: "BIDV", image: "../src/assets/bank4.jpg" },
-      ],
-    },
-    {
-      id: "momo",
-      name: "Ví MoMo",
-      image: "../src/assets/payment2.jpg",
-      description: "",
-    },
-    {
-      id: "card",
-      name: "Thẻ tín dụng/ghi nợ",
-      icon: CreditCard,
-      description: "",
-      logos: [
-        { name: "Visa", image: "../src/assets/payment1.jpg" },
-        { name: "Mastercard", image: "../src/assets/payment5.png" },
-        { name: "JCB", image: "../src/assets/payment6.png" },
-      ],
-    },
-  ];
-
-  const fetchUserInfo = async (token) => {
-    try {
-      const res = await axios.get("http://localhost:8000/auth/me", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setFormData((prev) => ({
-        ...prev,
-        fullName: res.data.name || "",
-        email: res.data.email || "",
-        phone: res.data.phone || "",
-        address: res.data.address || "",
-      }));
-    } catch (e) {
-      console.log(e);
-    }
-  };
+  const totalCartPrice = useMemo(() => {
+    return cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  }, [cartItems]);
 
   useEffect(() => {
     const initPaymentData = async () => {
@@ -113,22 +54,22 @@ const Payment = () => {
         return;
       }
 
-      if (
-        location.state?.selectedItems &&
-        location.state.selectedItems.length > 0
-      ) {
-        const items = location.state.selectedItems;
-        setCartItems(items);
-
-        // Tính tổng tiền dựa trên các món ĐƯỢC CHỌN
-        const total = items.reduce(
-          (sum, item) => sum + item.price * item.quantity,
-          0
-        );
-        setTotalCartPrice(total);
-
-        // Lấy thông tin user để điền form
-        fetchUserInfo(token);
+      if (location.state?.selectedItems?.length > 0) {
+        setCartItems(location.state.selectedItems);
+        try {
+          const res = await axios.get(`${API_BASE_URL}/auth/me`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          setFormData((prev) => ({
+            ...prev,
+            fullName: res.data.name || "",
+            email: res.data.email || "",
+            phone: res.data.phone || "",
+            address: res.data.address || "",
+          }));
+        } catch (e) {
+          console.error("Lỗi lấy thông tin user:", e);
+        }
       } else {
         alert("Vui lòng chọn sản phẩm từ giỏ hàng để thanh toán!");
         navigate("/cart");
@@ -140,37 +81,30 @@ const Payment = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
     if (errors[name]) {
-      setErrors((prev) => ({
-        ...prev,
-        [name]: "",
-      }));
+      setErrors((prev) => ({ ...prev, [name]: "" }));
     }
   };
 
   const validateForm = () => {
     const newErrors = {};
+    const emailRegex = /\S+@\S+\.\S+/;
+    const phoneRegex = /^[0-9]{10,11}$/;
 
     if (!formData.fullName.trim()) newErrors.fullName = "Vui lòng nhập họ tên";
-    if (!formData.email.trim()) {
-      newErrors.email = "Vui lòng nhập email";
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+
+    if (!formData.email.trim()) newErrors.email = "Vui lòng nhập email";
+    else if (!emailRegex.test(formData.email))
       newErrors.email = "Email không hợp lệ";
-    }
-    if (!formData.phone.trim()) {
-      newErrors.phone = "Vui lòng nhập số điện thoại";
-    } else if (!/^[0-9]{10,11}$/.test(formData.phone)) {
-      newErrors.phone = "Số điện thoại không hợp lệ";
-    }
-    if (!formData.address.trim()) newErrors.address = "Vui lòng nhập địa chỉ";
-    if (!formData.city) newErrors.city = "Vui lòng chọn tỉnh/thành phố";
-    if (!formData.district.trim())
-      newErrors.district = "Vui lòng nhập quận/huyện";
-    if (!formData.ward.trim()) newErrors.ward = "Vui lòng nhập phường/xã";
+
+    if (!formData.phone.trim()) newErrors.phone = "Vui lòng nhập SĐT";
+    else if (!phoneRegex.test(formData.phone))
+      newErrors.phone = "SĐT không hợp lệ";
+
+    if (!formData.address.trim()) newErrors.address = "Nhập địa chỉ";
+    if (!formData.city) newErrors.city = "Chọn Tỉnh/TP";
+    if (!formData.ward.trim()) newErrors.ward = "Nhập Phường/Xã";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -182,7 +116,7 @@ const Payment = () => {
     setIsLoading(true);
     const token = localStorage.getItem("access_token");
 
-    const fullAddress = `${formData.address}, ${formData.ward}, ${formData.district}, ${formData.city}`;
+    const fullAddress = `${formData.address}, ${formData.ward}, ${formData.city}`;
     const cartItemIds = cartItems.map((item) => item.id);
 
     const orderData = {
@@ -195,17 +129,14 @@ const Payment = () => {
     };
 
     try {
-      await axios.post("http://localhost:8000/orders/", orderData, {
+      await axios.post(`${API_BASE_URL}/orders/`, orderData, {
         headers: { Authorization: `Bearer ${token}` },
       });
-
       alert("Đặt hàng thành công!");
       navigate("/order");
     } catch (error) {
       console.error("Lỗi đặt hàng:", error);
-      const msg =
-        error.response?.data?.detail || "Đặt hàng thất bại. Vui lòng thử lại.";
-      alert(msg);
+      alert(error.response?.data?.detail || "Đặt hàng thất bại.");
     } finally {
       setIsLoading(false);
     }
@@ -218,6 +149,30 @@ const Payment = () => {
     }).format(price);
   };
 
+  const renderInput = (
+    id,
+    label,
+    placeholder,
+    type = "text",
+    wrapperClass = ""
+  ) => (
+    <div className={`form-group ${wrapperClass}`}>
+      <label htmlFor={id}>
+        {label} <span className="required">*</span>
+      </label>
+      <input
+        type={type}
+        id={id}
+        name={id}
+        value={formData[id]}
+        onChange={handleChange}
+        placeholder={placeholder}
+        className={errors[id] ? "error" : ""}
+      />
+      {errors[id] && <span className="error-message">{errors[id]}</span>}
+    </div>
+  );
+
   return (
     <LayoutDefault>
       <div className="payment">
@@ -225,8 +180,7 @@ const Payment = () => {
           <div className="payment__header">
             <h1 className="payment__title">THANH TOÁN</h1>
             <div className="payment__breadcrumb">
-              <a href="/cart">Giỏ hàng</a>
-              <span>/</span>
+              <a href="/cart">Giỏ hàng</a> <span>/</span>{" "}
               <span>Thanh toán</span>
             </div>
           </div>
@@ -235,95 +189,42 @@ const Payment = () => {
             <div className="payment__form">
               <section className="payment__section">
                 <h2 className="payment__section-title">
-                  <User size={20} />
-                  Thông tin liên hệ
+                  <User size={20} /> Thông tin liên hệ
                 </h2>
-
-                <div className="form-grid">
-                  <div className="form-group">
-                    <label htmlFor="fullName">
-                      Họ và tên <span className="required">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      id="fullName"
-                      name="fullName"
-                      value={formData.fullName}
-                      onChange={handleChange}
-                      placeholder="Nguyễn Văn A"
-                      className={errors.fullName ? "error" : ""}
-                    />
-                    {errors.fullName && (
-                      <span className="error-message">{errors.fullName}</span>
-                    )}
-                  </div>
-
-                  <div className="form-group">
-                    <label htmlFor="phone">
-                      Số điện thoại <span className="required">*</span>
-                    </label>
-                    <input
-                      type="tel"
-                      id="phone"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleChange}
-                      placeholder="0912345678"
-                      className={errors.phone ? "error" : ""}
-                    />
-                    {errors.phone && (
-                      <span className="error-message">{errors.phone}</span>
-                    )}
-                  </div>
+                <div className="form-grid form-grid--2">
+                  {renderInput("fullName", "Họ và tên", "Nguyễn Văn A")}
+                  {renderInput("phone", "Số điện thoại", "0912345678", "tel")}
                 </div>
-
-                <div className="form-group">
-                  <label htmlFor="email">
-                    Email <span className="required">*</span>
-                  </label>
-                  <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    placeholder="email@example.com"
-                    className={errors.email ? "error" : ""}
-                  />
-                  {errors.email && (
-                    <span className="error-message">{errors.email}</span>
-                  )}
-                </div>
+                {renderInput("email", "Email", "email@example.com", "email")}
               </section>
 
               <section className="payment__section">
                 <h2 className="payment__section-title">
-                  <MapPin size={20} />
-                  Địa chỉ giao hàng
+                  <MapPin size={20} /> Địa chỉ giao hàng
                 </h2>
 
-                <div className="form-group">
-                  <label htmlFor="address">
-                    Địa chỉ cụ thể <span className="required">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    id="address"
-                    name="address"
-                    value={formData.address}
-                    onChange={handleChange}
-                    placeholder="Số nhà, tên đường"
-                    className={errors.address ? "error" : ""}
-                  />
-                  {errors.address && (
-                    <span className="error-message">{errors.address}</span>
-                  )}
-                </div>
+                <div className="address-row">
+                  <div className="form-group address-specific">
+                    <label htmlFor="address">
+                      Địa chỉ cụ thể <span className="required">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="address"
+                      name="address"
+                      value={formData.address}
+                      onChange={handleChange}
+                      placeholder="Số nhà, đường"
+                      className={errors.address ? "error" : ""}
+                    />
+                    {errors.address && (
+                      <span className="error-message">{errors.address}</span>
+                    )}
+                  </div>
 
-                <div className="form-grid form-grid--3">
                   <div className="form-group">
                     <label htmlFor="city">
-                      Tỉnh/Thành phố <span className="required">*</span>
+                      Tỉnh/TP <span className="required">*</span>
                     </label>
                     <select
                       id="city"
@@ -332,8 +233,8 @@ const Payment = () => {
                       onChange={handleChange}
                       className={errors.city ? "error" : ""}
                     >
-                      <option value="">Chọn tỉnh/thành phố</option>
-                      {cities.map((city) => (
+                      <option value="">Chọn</option>
+                      {CITIES.map((city) => (
                         <option key={city} value={city}>
                           {city}
                         </option>
@@ -344,126 +245,70 @@ const Payment = () => {
                     )}
                   </div>
 
-                  <div className="form-group">
-                    <label htmlFor="district">
-                      Quận/Huyện <span className="required">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      id="district"
-                      name="district"
-                      value={formData.district}
-                      onChange={handleChange}
-                      placeholder="Quận/Huyện"
-                      className={errors.district ? "error" : ""}
-                    />
-                    {errors.district && (
-                      <span className="error-message">{errors.district}</span>
-                    )}
-                  </div>
-
-                  <div className="form-group">
-                    <label htmlFor="ward">
-                      Phường/Xã <span className="required">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      id="ward"
-                      name="ward"
-                      value={formData.ward}
-                      onChange={handleChange}
-                      placeholder="Phường/Xã"
-                      className={errors.ward ? "error" : ""}
-                    />
-                    {errors.ward && (
-                      <span className="error-message">{errors.ward}</span>
-                    )}
-                  </div>
+                  {renderInput("ward", "Phường/Xã", "Phường...")}
                 </div>
 
-                <div className="form-group">
-                  <label htmlFor="note">Ghi chú đơn hàng (tuỳ chọn)</label>
+                <div className="form-group mt-3">
+                  <label htmlFor="note">Ghi chú (tuỳ chọn)</label>
                   <textarea
                     id="note"
                     name="note"
                     value={formData.note}
                     onChange={handleChange}
-                    placeholder="Ghi chú về đơn hàng, ví dụ: thời gian hay chỉ dẫn địa điểm giao hàng chi tiết hơn"
-                    rows="4"
+                    placeholder="Ví dụ: Giao giờ hành chính..."
+                    rows="3"
                   />
                 </div>
               </section>
 
               <section className="payment__section">
                 <h2 className="payment__section-title">
-                  <CreditCard size={20} />
-                  Phương thức thanh toán
+                  <CreditCard size={20} /> Phương thức thanh toán
                 </h2>
-
                 <div className="payment-methods">
-                  {paymentMethods.map((method) => {
-                    return (
-                      <label key={method.id} className="payment-method">
-                        <input
-                          type="radio"
-                          name="paymentMethod"
-                          value={method.id}
-                          checked={formData.paymentMethod === method.id}
-                          onChange={handleChange}
-                        />
-                        <span className="payment-method__icon">
-                          {method.image ? (
-                            <img
-                              src={method.image}
-                              alt={method.name}
-                              style={{
-                                width: "20px",
-                                height: "20px",
-                                objectFit: "contain",
-                              }}
-                            />
-                          ) : (
-                            React.createElement(method.icon, { size: 20 })
-                          )}
+                  {PAYMENT_METHODS.map((method) => (
+                    <label key={method.id} className="payment-method">
+                      <input
+                        type="radio"
+                        name="paymentMethod"
+                        value={method.id}
+                        checked={formData.paymentMethod === method.id}
+                        onChange={handleChange}
+                      />
+                      <span className="payment-method__icon">
+                        <method.icon size={20} />
+                      </span>
+                      <span className="payment-method__info">
+                        <span className="payment-method__name">
+                          {method.name}
                         </span>
-                        <span className="payment-method__info">
-                          <span className="payment-method__name">
-                            {method.name}
-                          </span>
-                          {method.logos && method.logos.length > 0 && (
-                            <span className="payment-method__logos">
-                              {method.logos.map((logo, index) => (
-                                <img
-                                  key={index}
-                                  src={logo.image}
-                                  alt={logo.name}
-                                  title={logo.name}
-                                />
-                              ))}
-                            </span>
-                          )}
-                          {method.description && (
-                            <span className="payment-method__description">
-                              {method.description}
-                            </span>
-                          )}
+                        <span className="payment-method__description">
+                          {method.description}
                         </span>
-                      </label>
-                    );
-                  })}
+                      </span>
+                    </label>
+                  ))}
                 </div>
               </section>
             </div>
 
             <div className="payment__summary">
               <div className="payment__summary-sticky">
-                <h2 className="payment__summary-title">Đơn hàng của bạn</h2>
-
+                <h2 className="payment__summary-title">
+                  Đơn hàng ({cartItems.length} sản phẩm)
+                </h2>
                 <div className="order-items">
                   {cartItems.map((item) => (
                     <div key={item.id} className="order-item">
                       <div className="order-item__image">
-                        <div className="order-item__image-placeholder"></div>
+                        {item.product?.image || item.image ? (
+                          <img
+                            src={item.product?.image || item.image}
+                            alt={item.product?.name || item.name}
+                          />
+                        ) : (
+                          <div className="order-item__image-placeholder"></div>
+                        )}
                       </div>
                       <div className="order-item__details">
                         <h3 className="order-item__name">{item.name}</h3>
@@ -478,24 +323,13 @@ const Payment = () => {
                   ))}
                 </div>
 
-                <div className="coupon-box">
-                  <input
-                    type="text"
-                    placeholder="Mã giảm giá"
-                    className="coupon-box__input"
-                  />
-                  <button type="button" className="coupon-box__btn">
-                    Áp dụng
-                  </button>
-                </div>
-
                 <div className="price-summary">
                   <div className="price-summary__row">
                     <span>Tạm tính</span>
                     <span>{formatPrice(totalCartPrice)}</span>
                   </div>
                   <div className="price-summary__row">
-                    <span>Phí vận chuyển</span>
+                    <span>Vận chuyển</span>
                     <span className="text-success">Miễn phí</span>
                   </div>
                   <div className="price-summary__divider"></div>
@@ -516,7 +350,7 @@ const Payment = () => {
                 </button>
 
                 <div className="payment__security">
-                  <ShieldCheck size={16} />
+                  <ShieldCheck size={16} />{" "}
                   <span>Thanh toán bảo mật & mã hoá</span>
                 </div>
               </div>

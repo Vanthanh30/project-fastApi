@@ -51,6 +51,7 @@ app.add_middleware(
 
 Base.metadata.create_all(bind=engine)
 
+app.include_router(order_router)
 app.include_router(auth_router)
 app.include_router(admin_router)
 app.include_router(category_router)
@@ -62,7 +63,6 @@ app.include_router(auth_google_router)
 app.include_router(auth_facebook_router)
 app.include_router(auth_user_router)
 app.include_router(cart_router) 
-app.include_router(order_router)
 
 
 @app.get("/")
