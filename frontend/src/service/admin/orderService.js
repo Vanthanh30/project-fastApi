@@ -1,11 +1,40 @@
 import axios from "axios";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
-
+const API_URL = 'http://localhost:8000';
+const axiosInstance = axios.create({
+    baseURL: API_URL,
+    headers: {
+        'Content-Type': 'application/json',
+    },
+    withCredentials: true,
+});
+axiosInstance.interceptors.request.use(
+    (config) => {
+        const token = localStorage.getItem('adminToken');
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+    },
+    (error) => {
+        return Promise.reject(error);
+    }
+);
+axiosInstance.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.response?.status === 401) {
+            localStorage.removeItem('adminToken');
+            localStorage.removeItem('adminInfo');
+            window.location.href = '/admin/login';
+        }
+        return Promise.reject(error);
+    }
+);
 class OrderService {
     async getAllOrders() {
         try {
-            const response = await axios.get(`${API_URL}/orders/`);
+            const response = await axiosInstance.get(`${API_URL}/orders/`);
             return response.data;
         } catch (error) {
             throw this.handleError(error);
@@ -14,7 +43,7 @@ class OrderService {
 
     async approveOrder(orderId) {
         try {
-            const response = await axios.put(`${API_URL}/orders/${orderId}/approve_order/`);
+            const response = await axiosInstance.put(`${API_URL}/orders/${orderId}/approve_order/`);
             return response.data;
         } catch (error) {
             throw this.handleError(error);
@@ -22,7 +51,7 @@ class OrderService {
     }
     async cancelOrder(orderId) {
         try {
-            const response = await axios.put(`${API_URL}/orders/${orderId}/cancel_order/`);
+            const response = await axiosInstance.put(`${API_URL}/orders/${orderId}/cancel_order/`);
             return response.data;
         } catch (error) {
             throw this.handleError(error);
