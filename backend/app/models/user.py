@@ -15,6 +15,7 @@ class User(BaseModel):
     avatar = Column(String(500), nullable=True) 
     address = Column(String(255), nullable=True)
     phone = Column(String(255), nullable=True)
+    is_verified = Column(Integer, default=0) 
     role_id = Column(Integer, ForeignKey("roles.id"))
     role = relationship("Role", backref="users")
     status: int = Column(Integer, index=True, default=1)
