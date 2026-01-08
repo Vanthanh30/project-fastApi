@@ -1,8 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Search, Filter, Eye, Check, X, MessageSquare } from "lucide-react";
 import Sidebar from "../layout_default/Sidebar";
 import orderService from "../../../service/admin/orderService";
-import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 import "./order.scss";
@@ -16,8 +15,13 @@ const OrderPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortType, setSortType] = useState("newest");
 
+  // State cho popup
+  const [showPopup, setShowPopup] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 5;
+
   useEffect(() => {
     loadData();
   }, []);
@@ -35,17 +39,18 @@ const OrderPage = () => {
       setLoading(false);
     }
   };
+
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat("vi-VN", {
       style: "currency",
       currency: "VND",
     }).format(amount);
   };
+
   const formatDateTime = (iso) => {
     const d = new Date(iso);
     return d.toLocaleString("vi-VN");
   };
-
 
   const getStatusBadge = (status) => {
     switch (status) {
@@ -68,6 +73,7 @@ const OrderPage = () => {
     try {
       await orderService.approveOrder(orderId);
       loadData();
+      setShowPopup(false);
     } catch (err) {
       alert(err.response?.data?.detail || "Không thể duyệt đơn");
     }
@@ -79,12 +85,24 @@ const OrderPage = () => {
     try {
       await orderService.cancelOrder(orderId);
       loadData();
+      setShowPopup(false);
     } catch (err) {
       alert(err.response?.data?.detail || "Không thể hủy đơn");
     }
   };
 
-  // Cập nhật phần renderActions để dùng Icon
+  // Hàm xem chi tiết đơn hàng
+  const handleViewOrder = (order) => {
+    setSelectedOrder(order);
+    setShowPopup(true);
+  };
+
+  // Hàm đóng popup
+  const closePopup = () => {
+    setShowPopup(false);
+    setSelectedOrder(null);
+  };
+
   const renderActions = (order) => {
     switch (order.status) {
       case "Chờ xác nhận":
@@ -107,35 +125,20 @@ const OrderPage = () => {
             <button
               className="order-page__btn-action order-page__btn-action--view"
               title="Xem chi tiết"
+              onClick={() => handleViewOrder(order)}
             >
               <Eye size={18} />
             </button>
           </>
         );
       case "Đang giao":
-        return (
-          <button
-            className="order-page__btn-action order-page__btn-action--view"
-            title="Xem chi tiết"
-          >
-            <Eye size={18} />
-          </button>
-        );
       case "Đã giao":
-        return (
-          <button
-            className="order-page__btn-action order-page__btn-action--view"
-            title="Xem chi tiết"
-          >
-            <Eye size={18} />
-          </button>
-
-        );
       case "Đã hủy":
         return (
           <button
             className="order-page__btn-action order-page__btn-action--view"
             title="Xem chi tiết"
+            onClick={() => handleViewOrder(order)}
           >
             <Eye size={18} />
           </button>
@@ -146,7 +149,6 @@ const OrderPage = () => {
   };
 
   const processedOrders = orders
-    // 🔍 Search
     .filter((order) => {
       const keyword = searchTerm.toLowerCase();
       return (
@@ -155,18 +157,15 @@ const OrderPage = () => {
         order.email.toLowerCase().includes(keyword)
       );
     })
-    // 📌 Filter theo tab
     .filter((order) =>
       activeTab === "all" ? true : order.status === activeTab
     )
-    // 🔽 Sort
     .sort((a, b) => {
       const dateA = new Date(a.created_at);
       const dateB = new Date(b.created_at);
-      return sortType === "newest"
-        ? dateB - dateA
-        : dateA - dateB;
+      return sortType === "newest" ? dateB - dateA : dateA - dateB;
     });
+
   const totalItems = processedOrders.length;
   const totalPages = Math.ceil(totalItems / pageSize);
 
@@ -174,7 +173,6 @@ const OrderPage = () => {
     (currentPage - 1) * pageSize,
     currentPage * pageSize
   );
-
 
   return (
     <div className="order-page">
@@ -212,7 +210,6 @@ const OrderPage = () => {
               <option value="newest">Mới nhất</option>
               <option value="oldest">Cũ nhất</option>
             </select>
-
           </div>
         </div>
 
@@ -311,9 +308,7 @@ const OrderPage = () => {
               .map((page) => (
                 <button
                   key={page}
-                  className={`order-page__page-btn ${currentPage === page
-                    ? "order-page__page-btn--active"
-                    : ""
+                  className={`order-page__page-btn ${currentPage === page ? "order-page__page-btn--active" : ""
                     }`}
                   onClick={() => setCurrentPage(page)}
                 >
@@ -329,9 +324,135 @@ const OrderPage = () => {
               &gt;
             </button>
           </div>
-
         </div>
       </div>
+
+      {/* Popup chi tiết đơn hàng */}
+      {showPopup && selectedOrder && (
+        <div className="order-popup-overlay" onClick={closePopup}>
+          <div className="order-popup" onClick={(e) => e.stopPropagation()}>
+            {/* Header */}
+            <div className="order-popup__header">
+              <h2 className="order-popup__title">
+                Chi tiết đơn hàng #{selectedOrder.id}
+              </h2>
+              <button className="order-popup__close" onClick={closePopup}>
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="order-popup__content">
+              {/* Trạng thái */}
+              <div className="order-popup__section">
+                <label className="order-popup__label">Trạng thái</label>
+                {getStatusBadge(selectedOrder.status)}
+              </div>
+
+              {/* Thông tin khách hàng */}
+              <div className="order-popup__grid">
+                <div className="order-popup__field">
+                  <label className="order-popup__label">Khách hàng</label>
+                  <p className="order-popup__value">{selectedOrder.full_name}</p>
+                </div>
+                <div className="order-popup__field">
+                  <label className="order-popup__label">Email</label>
+                  <p className="order-popup__value">{selectedOrder.email}</p>
+                </div>
+                <div className="order-popup__field">
+                  <label className="order-popup__label">Số điện thoại</label>
+                  <p className="order-popup__value">{selectedOrder.phone || "N/A"}</p>
+                </div>
+                <div className="order-popup__field">
+                  <label className="order-popup__label">Ngày đặt</label>
+                  <p className="order-popup__value">{formatDateTime(selectedOrder.created_at)}</p>
+                </div>
+              </div>
+
+              {/* Địa chỉ */}
+              <div className="order-popup__section">
+                <label className="order-popup__label">Địa chỉ giao hàng</label>
+                <p className="order-popup__value">{selectedOrder.address || "Chưa có thông tin"}</p>
+              </div>
+
+              {/* Danh sách sản phẩm */}
+              <div className="order-popup__section">
+                <label className="order-popup__label">Sản phẩm</label>
+                <div className="order-popup__products">
+                  <table className="order-popup__table">
+                    <thead>
+                      <tr>
+                        <th>Tên sản phẩm</th>
+                        <th>Số lượng</th>
+                        <th>Đơn giá</th>
+                        <th>Thành tiền</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {selectedOrder.items && selectedOrder.items.length > 0 ? (
+                        selectedOrder.items.map((item, index) => (
+                          <tr key={index}>
+                            <td>{item.product_name || item.name || "N/A"}</td>
+                            <td className="text-center">{item.quantity}</td>
+                            <td>{formatCurrency(item.price)}</td>
+                            <td>{formatCurrency(item.quantity * item.price)}</td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan="4" className="text-center">Không có sản phẩm</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Ghi chú */}
+              {selectedOrder.note && (
+                <div className="order-popup__section">
+                  <label className="order-popup__label">Ghi chú</label>
+                  <p className="order-popup__value">{selectedOrder.note}</p>
+                </div>
+              )}
+
+              {/* Tổng tiền */}
+              <div className="order-popup__total">
+                <span className="order-popup__total-label">Tổng cộng:</span>
+                <span className="order-popup__total-value">{formatCurrency(selectedOrder.total)}</span>
+              </div>
+
+              {/* Actions */}
+              <div className="order-popup__actions">
+                {selectedOrder.status === "Chờ xác nhận" && (
+                  <>
+                    <button
+                      className="order-popup__btn order-popup__btn--confirm"
+                      onClick={() => handleApprove(selectedOrder.id)}
+                    >
+                      <Check size={18} />
+                      Xác nhận đơn hàng
+                    </button>
+                    <button
+                      className="order-popup__btn order-popup__btn--cancel"
+                      onClick={() => handleCancel(selectedOrder.id)}
+                    >
+                      <X size={18} />
+                      Hủy đơn hàng
+                    </button>
+                  </>
+                )}
+                <button
+                  className="order-popup__btn order-popup__btn--close"
+                  onClick={closePopup}
+                >
+                  Đóng
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
