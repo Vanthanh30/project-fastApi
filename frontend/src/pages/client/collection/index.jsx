@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from "react-router-dom";
 import LayoutDefault from '../layout_default/layout_default';
 import ChatboxAI from '../../../components/Chatbox/ChatboxAI';
 import CategoryFilter from '../../../components/Filter/CategoryFilter';
@@ -10,12 +10,13 @@ import CategoryService from '../../../service/client/categoryService';
 import './collection.scss';
 
 const Collection = () => {
+    const [searchParams] = useSearchParams();
     const [products, setProducts] = useState([]);
     const [categories, setCategories] = useState([]);
     const [filteredProducts, setFilteredProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-
+    const categoryFromUrl = searchParams.get("category");
     const [selectedCategory, setSelectedCategory] = useState('all');
     const [priceRange, setPriceRange] = useState([0, 5000000]);
     const [selectedProductTypes, setSelectedProductTypes] = useState([]);
@@ -95,6 +96,12 @@ const Collection = () => {
     useEffect(() => {
         fetchData();
     }, []);
+
+    useEffect(() => {
+        if (categoryFromUrl) {
+            setSelectedProductTypes([categoryFromUrl]);
+        }
+    }, [categoryFromUrl]);
 
     useEffect(() => {
         applyFilters();

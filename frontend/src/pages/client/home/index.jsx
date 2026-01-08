@@ -4,7 +4,10 @@ import LayoutDefault from '../layout_default/layout_default';
 import ChatboxAI from '../../../components/Chatbox/ChatboxAI';
 import ProductService from '../../../service/client/productService';
 import './home.scss';
-
+import premiumImg from "../../../assets/premium.jpg";
+import faceImg from "../../../assets/face.jpg";
+import lipImg from "../../../assets/lip.jpg";
+import eyeImg from "../../../assets/eye.jpg";
 const Home = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -67,21 +70,21 @@ const Home = () => {
       category: "MẶT",
       title: "Làm Nền",
       description: "Lớp nền hoàn hảo cho làn da rạng rỡ",
-      image: "/seasonal/face.jpg",
+      image: faceImg,
     },
     {
       id: 2,
       category: "MÔI",
       title: "Màu Hồng",
       description: "Sắc màu quyến rũ bền lâu",
-      image: "/seasonal/lips.jpg",
+      image: lipImg,
     },
     {
       id: 3,
       category: "MẮT",
       title: "Màu Nâu",
       description: "Làm nổi bật đôi mắt của bạn",
-      image: "/seasonal/eyes.jpg",
+      image: eyeImg,
     },
   ];
 
@@ -169,7 +172,13 @@ const Home = () => {
           <div className="container">
             <div className="premium__content">
               <div className="premium__image">
-                <div className="premium__image-placeholder"></div>
+                <div className="premium__image-placeholder">
+                  <img
+                    src={premiumImg}
+                    alt="Premium"
+                    className="premium__image-img"
+                  />
+                </div>
               </div>
               <div className="premium__text">
                 <span className="premium__label">TRIẾT LÝ CỦA CHÚNG TÔI</span>
@@ -184,9 +193,11 @@ const Home = () => {
                   dưỡng làn da từ sâu bên trong. Chúng tôi tin rằng vẻ đẹp thực
                   sự đến từ sự tự tin và sức khỏe làn da được chăm sóc tận tâm.
                 </p>
-                <button className="premium__cta">
-                  ĐỌC CÂU CHUYỆN CỦA CHÚNG TÔI
-                </button>
+                <Link to="/story">
+                  <button className="premium__cta">
+                    ĐỌC CÂU CHUYỆN CỦA CHÚNG TÔI
+                  </button>
+                </Link>
               </div>
             </div>
           </div>
@@ -203,19 +214,39 @@ const Home = () => {
             </div>
 
             <div className="seasonal__grid">
-              {seasonalProducts.map((item) => (
-                <div key={item.id} className="seasonal-card">
-                  <div className="seasonal-card__image">
-                    <div className="seasonal-card__image-placeholder"></div>
-                    <div className="seasonal-card__overlay">
-                      <div className="seasonal-card__text">
-                        <h3 className="seasonal-card__category">{item.category}</h3>
-                        <p className="seasonal-card__title">{item.title}</p>
+              {seasonalProducts.map((item) => {
+                const categoryKeyMap = {
+                  "MẶT": "face",
+                  "MÔI": "lips",
+                  "MẮT": "eyes",
+                };
+
+                const categoryKey = categoryKeyMap[item.category];
+
+                return (
+                  <Link
+                    to={`/collection?category=${categoryKey}`}
+                    key={item.id}
+                    className="seasonal-card"
+                  >
+                    <div className="seasonal-card__image">
+                      <div className="seasonal-card__image-placeholder">
+                        <img
+                          src={item.image}
+                          alt={item.title}
+                          className="seasonal-card__image-img"
+                        />
+                      </div>
+                      <div className="seasonal-card__overlay">
+                        <div className="seasonal-card__text">
+                          <h3 className="seasonal-card__category">{item.category}</h3>
+                          <p className="seasonal-card__title">{item.title}</p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </div>
-              ))}
+                  </Link>
+                );
+              })}
             </div>
           </div>
         </section>

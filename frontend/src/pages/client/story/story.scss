@@ -1,0 +1,129 @@
+.story {
+  background-color: #fff;
+  color: #222;
+  font-family: "Playfair Display", serif;
+}
+
+/* HERO */
+.story__hero {
+  height: 520px;
+  background-image: url("https://images.unsplash.com/photo-1556228578-8c89e6adf883");
+  background-size: cover;
+  background-position: center;
+  position: relative;
+}
+
+.story__hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: #fff;
+  text-align: center;
+  padding: 0 20px;
+}
+
+.story__tagline {
+  letter-spacing: 3px;
+  font-size: 13px;
+  margin-bottom: 16px;
+  color: #e5c07b;
+}
+
+.story__hero h1 {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.story__hero p {
+  font-size: 18px;
+  max-width: 600px;
+}
+
+/* SECTION */
+.story__section {
+  max-width: 1100px;
+  margin: 80px auto;
+  padding: 0 20px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: center;
+}
+
+.story__reverse {
+  grid-template-columns: 1fr 1fr;
+}
+
+.story__text h2 {
+  font-size: 32px;
+  margin-bottom: 20px;
+}
+
+.story__text p {
+  font-size: 16px;
+  line-height: 1.8;
+  margin-bottom: 16px;
+  color: #444;
+}
+
+.story__image img {
+  width: 100%;
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+/* VALUES */
+.story__values {
+  background-color: #f9f9f9;
+  padding: 80px 20px;
+  text-align: center;
+}
+
+.story__values h2 {
+  font-size: 36px;
+  margin-bottom: 40px;
+}
+
+.story__values-grid {
+  max-width: 1000px;
+  margin: auto;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 30px;
+}
+
+.value-card {
+  background: #fff;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+}
+
+.value-card h3 {
+  font-size: 20px;
+  margin-bottom: 12px;
+}
+
+.value-card p {
+  font-size: 15px;
+  color: #555;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .story__section {
+    grid-template-columns: 1fr;
+  }
+
+  .story__values-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .story__hero h1 {
+    font-size: 36px;
+  }
+}

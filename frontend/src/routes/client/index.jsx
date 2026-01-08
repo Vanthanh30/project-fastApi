@@ -12,7 +12,7 @@ import Collection from "../../pages/client/collection";
 import About from "../../pages/client/about";
 import Blog from "../../pages/client/blog";
 import Help from "../../pages/client/help";
-
+import Story from "../../pages/client/story";
 export const clientRoute = [
   { path: "/", element: <Home /> },
   {
@@ -67,4 +67,8 @@ export const clientRoute = [
     path: "/help",
     element: <Help />,
   },
+  {
+    path: "/story",
+    element: <Story />,
+  }
 ];
