@@ -15,7 +15,7 @@ def get_all_orders(db: Session = Depends(get_db)):
     orders = (db.query(Order).options(joinedload(Order.items)).all())
     return orders
 
-@router.get("/{order_id}", response_model=OrderResponse)
+@router.get("/{order_id}", response_model=OrderResponse,dependencies=[Depends(admin_required)])
 def get_order_by_id(order_id: int, db: Session = Depends(get_db)):
     order = (db.query(Order).options(joinedload(Order.items)).filter(Order.id == order_id).first())
 
