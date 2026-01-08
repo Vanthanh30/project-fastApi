@@ -26,3 +26,4 @@ class Product(BaseModel):
     deleted_at: datetime = Column(DateTime, index=True)
 
     category = relationship("Category",back_populates="products")
+    

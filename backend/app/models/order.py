@@ -30,7 +30,7 @@ class Order(BaseModel):
     )
 
     status = Column(
-        Enum(OrderStatus, values_callable=lambda obj: [e.value for e in obj]),
+        Enum(OrderStatus),
         nullable=False,
         default=OrderStatus.PENDING
     )
