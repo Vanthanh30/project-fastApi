@@ -5,11 +5,35 @@ import './auth.scss';
 const ForgotPassword = () => {
     const [email, setEmail] = useState('');
     const [isSubmitted, setIsSubmitted] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState('');
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log('Reset password for:', email);
-        setIsSubmitted(true);
+        setError('');
+        setIsLoading(true);
+
+        try {
+            const response = await fetch('http://localhost:8000/api/auth/forgot-password', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                setIsSubmitted(true);
+            } else {
+                setError(data.detail || 'Có lỗi xảy ra. Vui lòng thử lại.');
+            }
+        } catch (err) {
+            setError('Không thể kết nối đến server. Vui lòng thử lại.');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -37,6 +61,20 @@ const ForgotPassword = () => {
                                 hướng dẫn để đặt lại mật khẩu.
                             </p>
 
+                            {error && (
+                                <div style={{
+                                    padding: '12px 16px',
+                                    background: '#fee',
+                                    border: '1px solid #fcc',
+                                    borderRadius: '8px',
+                                    color: '#dc2626',
+                                    fontSize: '14px',
+                                    marginBottom: '20px'
+                                }}>
+                                    {error}
+                                </div>
+                            )}
+
                             <form onSubmit={handleSubmit} className="forgot-password__form">
                                 <div className="forgot-password__form-group">
                                     <label className="forgot-password__label">Địa chỉ Email</label>
@@ -47,11 +85,16 @@ const ForgotPassword = () => {
                                         className="forgot-password__input"
                                         placeholder="example@email.com"
                                         required
+                                        disabled={isLoading}
                                     />
                                 </div>
 
-                                <button type="submit" className="forgot-password__submit">
-                                    Gửi Link Đặt Lại
+                                <button
+                                    type="submit"
+                                    className="forgot-password__submit"
+                                    disabled={isLoading}
+                                >
+                                    {isLoading ? 'Đang gửi...' : 'Gửi Link Đặt Lại'}
                                 </button>
                             </form>
 

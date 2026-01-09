@@ -12,6 +12,7 @@ from app.routers.product import router as product_router
 from app.routers.chatbot import router as chatbot_router
 from app.routers.admin_order import router as admin_order_router
 import app.core.cloudinary_config
+from app.routers import forgot_password
 # from app.utils.seed_admin import seed_admin
 from app.routers.auth_google import router as auth_google_router
 from app.routers.auth_facebook import router as auth_facebook_router
@@ -59,6 +60,8 @@ app.include_router(product_router)
 app.include_router(chatbot_router)
 app.include_router(admin_order_router)
 # seed_admin()
+# Đăng ký router
+app.include_router(forgot_password.router, prefix="/api")
 app.include_router(auth_google_router)
 app.include_router(auth_facebook_router)
 app.include_router(auth_user_router)
