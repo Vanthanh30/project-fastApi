@@ -15,8 +15,6 @@ async def send_email(
 
     fm = FastMail(conf)
     await fm.send_message(message)
-# ===== THÊM FUNCTION MỚI BÊN DƯỚI =====
-
 async def send_reset_password_email(
     to_email: str,
     user_name: str,

@@ -10,10 +10,8 @@ class PasswordResetToken(BaseModel):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     token = Column(String(255), unique=True, nullable=False, index=True)
     expires_at = Column(DateTime, nullable=False)
-    is_used = Column(Integer, default=0)  # MySQL: 0=False, 1=True
+    is_used = Column(Integer, default=0)
     created_at = Column(DateTime, default=datetime.now)
-    
-    # Relationship
     user = relationship("User", back_populates="password_reset_tokens")
 
     def is_valid(self):

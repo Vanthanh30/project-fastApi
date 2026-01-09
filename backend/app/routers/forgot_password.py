@@ -8,11 +8,10 @@ from app.schemas.forgot_password import (
     ResetPasswordResponse
 )
 from app.services.forgot_password import ForgotPasswordService
-from app.utils.send_email import send_email  # Import để test
+from app.utils.send_email import send_email
 
 router = APIRouter(prefix="/auth", tags=["Authentication - Password Reset"])
 
-# ========== ENDPOINT TEST EMAIL ==========
 @router.post("/test-email")
 async def test_email():
     """Test xem email có gửi được không"""

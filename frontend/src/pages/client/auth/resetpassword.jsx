@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { LuEye, LuEyeOff } from "react-icons/lu";
 import './auth.scss';
 
 const ResetPassword = () => {
@@ -21,7 +22,6 @@ const ResetPassword = () => {
     const [error, setError] = useState('');
     const [tokenValid, setTokenValid] = useState(false);
 
-    // Verify token khi component mount
     useEffect(() => {
         if (!token) {
             setError('Token không hợp lệ');
@@ -53,7 +53,6 @@ const ResetPassword = () => {
         e.preventDefault();
         setError('');
 
-        // Validation
         if (formData.newPassword.length < 6) {
             setError('Mật khẩu phải có ít nhất 6 ký tự');
             return;
@@ -217,13 +216,21 @@ const ResetPassword = () => {
                                             className="forgot-password__input auth__input--password"
                                             placeholder="Nhập mật khẩu mới"
                                             required
+                                            disabled={isLoading}
                                         />
-                                        <span
-                                            className="auth__eye-icon"
-                                            onClick={() => setShowPassword({ ...showPassword, new: !showPassword.new })}
-                                        >
-                                            {showPassword.new ? '👁️' : '👁️‍🗨️'}
-                                        </span>
+                                        {showPassword.new ? (
+                                            <LuEye
+                                                className="auth__eye-icon"
+                                                onMouseDown={(e) => e.preventDefault()}
+                                                onClick={() => setShowPassword({ ...showPassword, new: false })}
+                                            />
+                                        ) : (
+                                            <LuEyeOff
+                                                className="auth__eye-icon"
+                                                onMouseDown={(e) => e.preventDefault()}
+                                                onClick={() => setShowPassword({ ...showPassword, new: true })}
+                                            />
+                                        )}
                                     </div>
                                 </div>
 
@@ -238,13 +245,21 @@ const ResetPassword = () => {
                                             className="forgot-password__input auth__input--password"
                                             placeholder="Nhập lại mật khẩu mới"
                                             required
+                                            disabled={isLoading}
                                         />
-                                        <span
-                                            className="auth__eye-icon"
-                                            onClick={() => setShowPassword({ ...showPassword, confirm: !showPassword.confirm })}
-                                        >
-                                            {showPassword.confirm ? '👁️' : '👁️‍🗨️'}
-                                        </span>
+                                        {showPassword.confirm ? (
+                                            <LuEye
+                                                className="auth__eye-icon"
+                                                onMouseDown={(e) => e.preventDefault()}
+                                                onClick={() => setShowPassword({ ...showPassword, confirm: false })}
+                                            />
+                                        ) : (
+                                            <LuEyeOff
+                                                className="auth__eye-icon"
+                                                onMouseDown={(e) => e.preventDefault()}
+                                                onClick={() => setShowPassword({ ...showPassword, confirm: true })}
+                                            />
+                                        )}
                                     </div>
                                 </div>
 
