@@ -79,6 +79,16 @@ const OrderPage = () => {
     }
   };
 
+  const handleDone = async (orderId) => {
+    if (!confirm("Xác nhận đã giao đơn này?")) return;
+
+    try {
+      await orderService.doneOrder(orderId);
+      loadData();
+    } catch (err) {
+      alert(err.response?.data?.detail || "Không thể xác nhận đã giao đơn");
+    }
+  };
   const handleCancel = async (orderId) => {
     if (!confirm("Bạn có chắc muốn hủy đơn này?")) return;
 
@@ -132,6 +142,23 @@ const OrderPage = () => {
           </>
         );
       case "Đang giao":
+        return (
+          <>
+            <button
+              className="order-page__btn-action order-page__btn-action--view"
+              title="Xem chi tiết"
+            >
+              <Eye size={18} />
+            </button>
+            <button
+              className="order-page__btn-action order-page__btn-action--confirm"
+              title="Xác nhận đã giao"
+              onClick={() => handleDone(order.id)}
+            >
+              <Check size={18} />
+            </button>
+          </>
+        );
       case "Đã giao":
       case "Đã hủy":
         return (
@@ -392,7 +419,7 @@ const OrderPage = () => {
                       {selectedOrder.items && selectedOrder.items.length > 0 ? (
                         selectedOrder.items.map((item, index) => (
                           <tr key={index}>
-                            <td>{item.product_name || item.name || "N/A"}</td>
+                            <td>{item.product?.name || "N/A"}</td>
                             <td className="text-center">{item.quantity}</td>
                             <td>{formatCurrency(item.price)}</td>
                             <td>{formatCurrency(item.quantity * item.price)}</td>
