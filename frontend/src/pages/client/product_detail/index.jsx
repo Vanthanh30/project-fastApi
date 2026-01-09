@@ -24,12 +24,17 @@ const ProductDetail = () => {
         info: false
     });
 
-    // Gray placeholder SVG
     const grayPlaceholder = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="300" height="300"%3E%3Crect width="300" height="300" fill="%23e5e7eb"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="%239ca3af"%3ENo Image%3C/text%3E%3C/svg%3E';
 
     useEffect(() => {
         fetchProductDetail();
     }, [id]);
+
+    const getAutoStatus = (quantity) => {
+        if (quantity === 0) return { text: 'Hết hàng', value: 3 };
+        if (quantity < 20) return { text: 'Sắp hết', value: 2 };
+        return { text: 'Còn hàng', value: 1 };
+    };
 
     const fetchProductDetail = async () => {
         try {
@@ -105,7 +110,6 @@ const ProductDetail = () => {
         }
     };
 
-
     const toggleAccordion = (key) => {
         setOpenAccordions(prev => ({
             ...prev,
@@ -149,6 +153,8 @@ const ProductDetail = () => {
             </LayoutDefault>
         );
     }
+
+    const productStatus = getAutoStatus(product.quantity || 0);
 
     return (
         <LayoutDefault>
@@ -227,14 +233,16 @@ const ProductDetail = () => {
                                 <button
                                     className="product-detail__buy-btn"
                                     onClick={handleAddToCart}
-                                    disabled={addingToCart}
+                                    disabled={addingToCart || product.quantity === 0}
                                 >
-                                    {addingToCart ? 'ĐANG THÊM...' : `THÊM VÀO GIỎ - ${ProductService.formatPrice(product.price * quantity)}₫`}
+                                    {addingToCart ? 'ĐANG THÊM...' :
+                                        product.quantity === 0 ? 'HẾT HÀNG' :
+                                            `THÊM VÀO GIỎ - ${ProductService.formatPrice(product.price * quantity)}₫`}
                                 </button>
                                 <button
                                     className="product-detail__cart-btn"
                                     onClick={handleAddToCart}
-                                    disabled={addingToCart}
+                                    disabled={addingToCart || product.quantity === 0}
                                     title="Thêm vào giỏ hàng"
                                 >
                                     <ShoppingCart size={20} />
@@ -277,7 +285,7 @@ const ProductDetail = () => {
                                     <div className={`product-detail__accordion-content ${openAccordions.info ? 'open' : ''}`}>
                                         <p><strong>Thương hiệu:</strong> {product.brand || 'N/A'}</p>
                                         <p><strong>Danh mục:</strong> {category?.name || product.category_name || 'N/A'}</p>
-                                        <p><strong>Tình trạng:</strong> {product.status === 'active' ? 'Còn hàng' : 'Hết hàng'}</p>
+                                        <p><strong>Tình trạng:</strong> {productStatus.text}</p>
                                         <p><strong>Số lượng còn:</strong> {product.quantity || 0}</p>
                                     </div>
                                 </div>
