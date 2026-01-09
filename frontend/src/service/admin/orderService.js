@@ -49,6 +49,14 @@ class OrderService {
             throw this.handleError(error);
         }
     }
+    async doneOrder(orderId) {
+        try {
+            const response = await axiosInstance.put(`${API_URL}/orders/${orderId}/done_order/`);
+            return response.data;
+        } catch (error) {
+            throw this.handleError(error);
+        }
+    }
     async cancelOrder(orderId) {
         try {
             const response = await axiosInstance.put(`${API_URL}/orders/${orderId}/cancel_order/`);
