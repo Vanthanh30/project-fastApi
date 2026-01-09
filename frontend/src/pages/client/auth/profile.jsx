@@ -18,7 +18,6 @@ import "./auth.scss";
 
 const Profile = () => {
   const [activeTab, setActiveTab] = useState("info");
-  const [emailNotification, setEmailNotification] = useState(true);
   const fileInputRef = useRef(null);
   const [isLoading, setIsLoading] = useState(false);
   const [avatarFile, setAvatarFile] = useState(null);
@@ -242,45 +241,6 @@ const Profile = () => {
                       {isLoading ? "Đang lưu..." : "Lưu thay đổi"}
                     </button>
                   </form>
-                </div>
-
-                <div className="profile__card profile__notification">
-                  <h2>Tùy chọn liên lạc</h2>
-
-                  <div className="profile__notification-item">
-                    <div className="profile__notification-content">
-                      <div className="profile__notification-icon">
-                        <Mail size={24} />
-                      </div>
-                      <div className="profile__notification-text">
-                        <h3>Bản tin qua thư điện tử</h3>
-                        <p>
-                          Nhận cập nhật về sản phẩm mới, ưu đãi đặc biệt, tin
-                          tức và cập nhật sự kiện được gửi đến hộp thư đến của
-                          bạn
-                        </p>
-                      </div>
-                    </div>
-                    <label className="profile__toggle">
-                      <input
-                        type="checkbox"
-                        checked={emailNotification}
-                        onChange={(e) => setEmailNotification(e.target.checked)}
-                      />
-                      <span className="profile__toggle-slider"></span>
-                    </label>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {activeTab === "orders" && (
-              <div className="profile__section">
-                <div className="profile__header">
-                  <h1 className="profile__title">Lịch sử đơn hàng</h1>
-                  <p className="profile__subtitle">
-                    Theo dõi, quản lý đơn hàng và lịch sử mua sắm của bạn
-                  </p>
                 </div>
               </div>
             )}
