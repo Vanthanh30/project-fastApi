@@ -21,6 +21,11 @@ const ProductPage = () => {
   const [error, setError] = useState(null);
 
   const itemsPerPage = 10;
+  const getAutoStatus = (quantity) => {
+    if (quantity === 0) return 3;
+    if (quantity < 20) return 2;
+    return 1;
+  };
 
   useEffect(() => {
     loadData();
@@ -50,8 +55,6 @@ const ProductPage = () => {
 
   const filterProducts = () => {
     let filtered = [...products];
-
-    // Filter by search term
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase().trim();
       filtered = filtered.filter((product) => {
@@ -66,19 +69,16 @@ const ProductPage = () => {
         );
       });
     }
-
-    // Filter by category
     if (selectedCategory !== "all") {
       filtered = filtered.filter(
         (product) => product.category?.name === selectedCategory
       );
     }
-
-    // Filter by status
     if (statusFilter !== "all") {
-      filtered = filtered.filter(
-        (product) => product.status.toString() === statusFilter
-      );
+      filtered = filtered.filter((product) => {
+        const autoStatus = getAutoStatus(product.quantity);
+        return autoStatus.toString() === statusFilter;
+      });
     }
 
     setFilteredProducts(filtered);
@@ -216,8 +216,6 @@ const ProductPage = () => {
             Thêm sản phẩm mới
           </button>
         </div>
-
-        {/* Product Filter */}
         <ProductFilter
           searchTerm={searchTerm}
           onSearchChange={handleSearch}
@@ -225,8 +223,6 @@ const ProductPage = () => {
           onCategoryChange={handleCategoryChange}
           categories={categories}
         />
-
-        {/* Status Tabs */}
         <div className="product-page__tabs">
           <span className="product-page__tab-label">Trạng thái:</span>
           <button
@@ -288,92 +284,97 @@ const ProductPage = () => {
                 </tr>
               </thead>
               <tbody>
-                {currentItems.map((product, index) => (
-                  <tr
-                    key={product.id}
-                    style={{ animationDelay: `${index * 0.05}s` }}
-                  >
-                    <td className="product-page__stt">
-                      {indexOfFirstItem + index + 1}
-                    </td>
-                    <td>
-                      <div className="product-page__product-info">
-                        <img
-                          src={ProductService.getImageUrl(product.image)}
-                          alt={product.name}
-                          className="product-page__product-img"
-                          loading="lazy"
-                          onError={(e) => {
-                            e.target.src = "https://via.placeholder.com/100";
-                          }}
-                        />
-                        <div className="product-page__product-detail">
-                          <span className="product-page__product-name">
-                            {product.name}
-                          </span>
-                          <span className="product-page__product-variant">
-                            {product.brand || "N/A"}
-                          </span>
-                        </div>
-                      </div>
-                    </td>
-                    <td>{product.category?.name || "N/A"}</td>
-                    <td>
-                      <span className="product-page__price">
-                        {formatPrice(product.price)}
-                      </span>
-                    </td>
-                    <td>
-                      <div className="product-page__stock-wrapper">
-                        <span className="product-page__stock-number">
-                          {product.quantity}
-                        </span>
-                        <div className="product-page__progress-bg">
-                          <div
-                            className={`product-page__progress-fill ${getStockLevelClass(
-                              product.quantity
-                            )}`}
-                            style={{
-                              width: `${Math.min(
-                                (product.quantity / 100) * 100,
-                                100
-                              )}%`,
+                {currentItems.map((product, index) => {
+                  // Tính toán trạng thái tự động dựa trên tồn kho
+                  const autoStatus = getAutoStatus(product.quantity);
+
+                  return (
+                    <tr
+                      key={product.id}
+                      style={{ animationDelay: `${index * 0.05}s` }}
+                    >
+                      <td className="product-page__stt">
+                        {indexOfFirstItem + index + 1}
+                      </td>
+                      <td>
+                        <div className="product-page__product-info">
+                          <img
+                            src={ProductService.getImageUrl(product.image)}
+                            alt={product.name}
+                            className="product-page__product-img"
+                            loading="lazy"
+                            onError={(e) => {
+                              e.target.src = "https://via.placeholder.com/100";
                             }}
-                          ></div>
+                          />
+                          <div className="product-page__product-detail">
+                            <span className="product-page__product-name">
+                              {product.name}
+                            </span>
+                            <span className="product-page__product-variant">
+                              {product.brand || "N/A"}
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                    </td>
-                    <td>
-                      <span
-                        className={`product-page__status product-page__status--${getStatusClass(
-                          product.status
-                        )}`}
-                      >
-                        {getStatusText(product.status)}
-                      </span>
-                    </td>
-                    <td>
-                      <div className="product-page__actions">
-                        <button
-                          type="button"
-                          className="product-page__action-btn product-page__action-btn--edit"
-                          onClick={() =>
-                            navigate(`/admin/product/edit/${product.id}`)
-                          }
+                      </td>
+                      <td>{product.category?.name || "N/A"}</td>
+                      <td>
+                        <span className="product-page__price">
+                          {formatPrice(product.price)}
+                        </span>
+                      </td>
+                      <td>
+                        <div className="product-page__stock-wrapper">
+                          <span className="product-page__stock-number">
+                            {product.quantity}
+                          </span>
+                          <div className="product-page__progress-bg">
+                            <div
+                              className={`product-page__progress-fill ${getStockLevelClass(
+                                product.quantity
+                              )}`}
+                              style={{
+                                width: `${Math.min(
+                                  (product.quantity / 100) * 100,
+                                  100
+                                )}%`,
+                              }}
+                            ></div>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <span
+                          className={`product-page__status product-page__status--${getStatusClass(
+                            autoStatus
+                          )}`}
                         >
-                          <Edit2 size={16} />
-                        </button>
-                        <button
-                          type="button"
-                          className="product-page__action-btn product-page__action-btn--delete"
-                          onClick={() => handleDelete(product.id)}
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                          {getStatusText(autoStatus)}
+                        </span>
+                      </td>
+                      <td>
+                        <div className="product-page__actions">
+                          <button
+                            type="button"
+                            className="product-page__action-btn product-page__action-btn--edit"
+                            onClick={() =>
+                              navigate(`/admin/product/edit/${product.id}`)
+                            }
+                          >
+                            <Edit2 size={16} />
+                          </button>
+                          <button
+                            type="button"
+                            className="product-page__action-btn product-page__action-btn--delete"
+                            onClick={() => handleDelete(product.id)}
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           )}

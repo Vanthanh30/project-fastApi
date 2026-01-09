@@ -22,4 +22,8 @@ class User(BaseModel):
     created_at: datetime = Column(DateTime, index=True, default=datetime.now)
     updated_at: datetime = Column(DateTime, index=True, default=datetime.now)
 
-
+    password_reset_tokens = relationship(
+            "PasswordResetToken", 
+            back_populates="user",
+            cascade="all, delete-orphan"
+    )

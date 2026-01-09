@@ -71,7 +71,7 @@ class CategoryResponse(BaseModel):
         from_attributes = True
 class ProductResponse(ProductCreate):
     id: int
-    image: str | None = None
+    image: Optional[str] = None
     category: Optional[CategoryResponse] = None
 
     class Config:
