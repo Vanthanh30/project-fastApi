@@ -6,10 +6,12 @@ from app.models.product import Product
 from app.schemas.product import ProductCreate, ProductResponse, ProductUpdate
 from app.models.category import Category
 from app.middleware.cloudinary import upload_avatar
-from typing import Optional
+from app.middleware.authenticate import admin_required
+
+
 router = APIRouter(prefix="/products", tags=["Products"])
 
-@router.post("/", response_model=ProductResponse)
+@router.post("/", response_model=ProductResponse,dependencies=[Depends(admin_required)])
 async def create_product (    
     data: ProductCreate = Depends(ProductCreate.as_form),
     image: Optional[str] = None,
@@ -52,7 +54,7 @@ def get_product_by_id(product_id: int, db: Session = Depends(get_db)):
     
     return product
 
-@router.put("/{product_id}", response_model=ProductResponse)
+@router.put("/{product_id}", response_model=ProductResponse,dependencies=[Depends(admin_required)])
 async def update_product(
     product_id: int,
     data: ProductUpdate = Depends(ProductUpdate.as_form),
@@ -72,7 +74,7 @@ async def update_product(
     db.refresh(product)
     return product
 
-@router.delete("/{product_id}")
+@router.delete("/{product_id}",dependencies=[Depends(admin_required)])
 def delete_product(product_id: int, db: Session = Depends(get_db)):
     product = get_product_by_id(product_id, db)
     product.deleted_at = datetime.now()

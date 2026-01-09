@@ -7,6 +7,13 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def hash_password(password: str):
     return pwd_context.hash(password)
+def create_verify_token(user_id: int):
+    payload = {
+        "user_id": user_id,
+        "type": "verify",
+        "exp": datetime.utcnow() + timedelta(minutes=30)
+    }
+    return jwt.encode(payload, settings.SECRET_KEY, settings.ALGORITHM)
 
 def verify_password(password, hashed):
     return pwd_context.verify(password, hashed)

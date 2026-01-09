@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import LayoutDefault from "../layout_default/layout_default";
 import "./order.scss";
 
@@ -8,6 +9,9 @@ const Order = () => {
   const [activeTab, setActiveTab] = useState("TẤT CẢ");
   const [orders, setOrders] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
 
   const [selectedOrder, setSelectedOrder] = useState(null);
 
@@ -87,6 +91,18 @@ const Order = () => {
     return order.status === activeTab;
   });
 
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentOrders = filteredOrders.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    setCurrentPage(1);
+  };
+
   return (
     <LayoutDefault>
       <div className="my-orders-page">
@@ -105,7 +121,7 @@ const Order = () => {
                 className={`my-orders-page__tab ${
                   activeTab === tab ? "active" : ""
                 }`}
-                onClick={() => setActiveTab(tab)}
+                onClick={() => handleTabChange(tab)}
               >
                 {tab}
               </button>
@@ -123,62 +139,96 @@ const Order = () => {
                 </button>
               </div>
             ) : (
-              filteredOrders.map((order, index) => {
-                const statusInfo = getStatusBadge(order.status);
-                return (
-                  <div
-                    key={order.id}
-                    className="my-orders-page__order-card"
-                    style={{ animationDelay: `${index * 0.1}s` }}
-                  >
-                    <div className="order-card__header">
-                      <div className="order-card__id">
-                        Mã đơn: <strong>#{order.id}</strong>
-                      </div>
-                      <span
-                        className={`order-card__status order-card__status--${statusInfo.color}`}
-                      >
-                        {statusInfo.text}
-                      </span>
-                    </div>
-
-                    <div className="order-card__body">
-                      <div className="order-info-row">
-                        <p className="order-card__date">
-                          Ngày đặt: {formatDate(order.created_at)}
-                        </p>
-                        <p className="order-card__payment">
-                          TT: {order.payment_method}
-                        </p>
-                      </div>
-                      <div className="order-total-row">
-                        <span>Tổng tiền:</span>
-                        <strong className="total-price">
-                          {formatCurrency(order.total)}
-                        </strong>
-                      </div>
-                    </div>
-
-                    <div className="order-card__footer">
-                      <button
-                        className="order-card__btn order-card__btn--secondary"
-                        onClick={() => setSelectedOrder(order)}
-                      >
-                        Xem chi tiết
-                      </button>
-
-                      {order.status === "Chờ xác nhận" && (
-                        <button
-                          className="order-card__btn order-card__btn--danger"
-                          onClick={() => handleCancelOrder(order.id)}
+              <>
+                {currentOrders.map((order, index) => {
+                  const statusInfo = getStatusBadge(order.status);
+                  return (
+                    <div
+                      key={order.id}
+                      className="my-orders-page__order-card"
+                      style={{ animationDelay: `${index * 0.1}s` }}
+                    >
+                      <div className="order-card__header">
+                        <div className="order-card__id">
+                          Mã đơn: <strong>#{order.id}</strong>
+                        </div>
+                        <span
+                          className={`order-card__status order-card__status--${statusInfo.color}`}
                         >
-                          Hủy đơn hàng
+                          {statusInfo.text}
+                        </span>
+                      </div>
+
+                      <div className="order-card__body">
+                        <div className="order-info-row">
+                          <p className="order-card__date">
+                            Ngày đặt: {formatDate(order.created_at)}
+                          </p>
+                          <p className="order-card__payment">
+                            TT: {order.payment_method}
+                          </p>
+                        </div>
+                        <div className="order-total-row">
+                          <span>Tổng tiền:</span>
+                          <strong className="total-price">
+                            {formatCurrency(order.total)}
+                          </strong>
+                        </div>
+                      </div>
+
+                      <div className="order-card__footer">
+                        <button
+                          className="order-card__btn order-card__btn--secondary"
+                          onClick={() => setSelectedOrder(order)}
+                        >
+                          Xem chi tiết
                         </button>
-                      )}
+
+                        {order.status === "Chờ xác nhận" && (
+                          <button
+                            className="order-card__btn order-card__btn--danger"
+                            onClick={() => handleCancelOrder(order.id)}
+                          >
+                            Hủy đơn hàng
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {totalPages > 1 && (
+                  <div className="pagination-container">
+                    <div className="pagination-custom">
+                      <button
+                        className="pagination-custom__btn"
+                        onClick={() => paginate(currentPage - 1)}
+                        disabled={currentPage === 1}
+                      >
+                        <ChevronLeft size={20} />
+                      </button>
+                      {[...Array(totalPages)].map((_, index) => (
+                        <button
+                          key={index}
+                          className={`pagination-custom__number ${
+                            currentPage === index + 1 ? "active" : ""
+                          }`}
+                          onClick={() => paginate(index + 1)}
+                        >
+                          {index + 1}
+                        </button>
+                      ))}
+                      <button
+                        className="pagination-custom__btn"
+                        onClick={() => paginate(currentPage + 1)}
+                        disabled={currentPage === totalPages}
+                      >
+                        <ChevronRight size={20} />
+                      </button>
                     </div>
                   </div>
-                );
-              })
+                )}
+              </>
             )}
           </div>
         </div>

@@ -1,7 +1,36 @@
 import axios from "axios";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
-
+const API_URL = 'http://localhost:8000';
+const axiosInstance = axios.create({
+    baseURL: API_URL,
+    headers: {
+        'Content-Type': 'application/json',
+    },
+    withCredentials: true,
+});
+axiosInstance.interceptors.request.use(
+    (config) => {
+        const token = localStorage.getItem('adminToken');
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+    },
+    (error) => {
+        return Promise.reject(error);
+    }
+);
+axiosInstance.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.response?.status === 401) {
+            localStorage.removeItem('adminToken');
+            localStorage.removeItem('adminInfo');
+            window.location.href = '/admin/login';
+        }
+        return Promise.reject(error);
+    }
+);
 class ProductService {
     async getAllProducts() {
         try {
@@ -33,7 +62,7 @@ class ProductService {
                 formData.append('image', imageFile);
             }
 
-            const response = await axios.post(`${API_URL}/products/`, formData, {
+            const response = await axiosInstance.post(`${API_URL}/products/`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
@@ -57,7 +86,7 @@ class ProductService {
                 formData.append('image', imageFile);
             }
 
-            const response = await axios.put(
+            const response = await axiosInstance.put(
                 `${API_URL}/products/${id}`,
                 formData,
                 {
@@ -73,7 +102,7 @@ class ProductService {
     }
     async deleteProduct(id) {
         try {
-            const response = await axios.delete(`${API_URL}/products/${id}`);
+            const response = await axiosInstance.delete(`${API_URL}/products/${id}`);
             return response.data;
         } catch (error) {
             throw this.handleError(error);

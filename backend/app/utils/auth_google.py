@@ -11,6 +11,7 @@ def get_or_create_google_user(db: Session, user_info: dict) -> User:
             name=user_info.get("name"),
             password=None,
             role_id=2,
+            is_verified=1
         )
         db.add(user)
         db.commit()

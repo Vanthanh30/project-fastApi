@@ -83,10 +83,6 @@ CÂU HỎI KHÁCH:
 DANH SÁCH SẢN PHẨM:
 {product_context}
 
-Cách trả lời:
-- Xưng hô "bạn"
-- Có emoji nhẹ 😊
-- Tối đa 4–6 câu
 """
 
     completion = client.responses.create(

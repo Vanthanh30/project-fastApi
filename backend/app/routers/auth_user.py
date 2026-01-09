@@ -2,8 +2,15 @@ from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, status,UploadFile, File, Form
 from sqlalchemy.orm import Session
 from typing import Optional
+from app.utils.send_email import send_email
 from app.db.base import get_db
 from app.models.user import User
+from app.core.config import settings
+from fastapi.responses import HTMLResponse
+
+import jwt
+from jwt import PyJWTError
+from app.core.security import create_verify_token
 
 from app.schemas.auth import (
     RegisterRequest,
@@ -19,43 +26,110 @@ from app.core.security import (
 
 from app.middleware.authenticate import authenticate
 from app.middleware.cloudinary import upload_avatar
+from app.models import user
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
 
-@router.post("/register", response_model=TokenResponse)
-def register_user(data: RegisterRequest, db: Session = Depends(get_db)):
+@router.post("/register")
+async def register_user(data: RegisterRequest, db: Session = Depends(get_db)):
 
     if db.query(User).filter(User.email == data.email).first():
-        raise HTTPException(
-            status_code=400,
-            detail="Email already exists"
-        )
+        raise HTTPException(status_code=400, detail="Email already exists")
 
     user = User(
         name=data.name,
         email=data.email,
         password=hash_password(data.password),
-        role_id=2  
+        role_id=2,
+        is_verified=0
     )
 
     db.add(user)
     db.commit()
     db.refresh(user)
 
+    # ✅ Create verify token
+    verify_token = create_verify_token(user.id)
 
-    token = create_access_token(user.id, role="user")
+    verify_link = f"http://localhost:8000/auth/verify-email?token={verify_token}"
+
+    # ✅ Send verify email
+    await send_email(
+        to=user.email,
+        subject="Verify your email",
+        body=f"""
+        <h3>Hello {user.name}</h3>
+        <p>Please click the link below to verify your account:</p>
+        <a href="{verify_link}">Verify Email</a>
+        <p>This link expires in 30 minutes.</p>
+        """
+    )
 
     return {
-        "access_token": token,
-        "token_type": "bearer"
+        "message": "Please check your email to verify your account"
     }
+@router.get("/verify-email", response_class=HTMLResponse)
+def verify_email(token: str, db: Session = Depends(get_db)):
+    try:
+        payload = jwt.decode(
+            token,
+            settings.SECRET_KEY,
+            algorithms=[settings.ALGORITHM]
+        )
 
+        if payload.get("type") != "verify":
+            return HTMLResponse(
+                content="<h3> Token không hợp lệ</h3>",
+                status_code=400
+            )
+
+        user_id = payload.get("user_id")
+
+    except PyJWTError:
+        return HTMLResponse(
+            content="<h3> Token đã hết hạn hoặc không hợp lệ</h3>",
+            status_code=400
+        )
+
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        return HTMLResponse(
+            content="<h3> Người dùng không tồn tại</h3>",
+            status_code=404
+        )
+
+    if not user.is_verified:
+        user.is_verified = 1
+        db.commit()
+
+    # ✅ TRANG CẢM ƠN
+    return HTMLResponse(
+        content="""
+        <html>
+            <head>
+                <title>Email Verified</title>
+            </head>
+            <body style="font-family: Arial; text-align:center; margin-top:80px">
+                <h2> Cảm ơn bạn đã xác nhận email!</h2>
+                <p>Tài khoản của bạn đã được kích hoạt thành công.</p>
+                <a href="http://localhost:5173/login">
+                    Đăng nhập ngay
+                </a>
+            </body>
+        </html>
+        """,
+        status_code=200
+    )
 
 @router.post("/login", response_model=TokenResponse)
 def login_user(data: LoginRequest, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == data.email).first()
-
+    if not user.is_verified:
+        raise HTTPException(
+        status_code=403,
+        detail="Please verify your email before logging in"
+    )
     if not user or not user.password:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -88,7 +162,7 @@ async def update_user_me(
     db: Session = Depends(get_db),
     current_user: User = Depends(authenticate)
 ):
-    # ✅ Update text fields
+
     if name is not None:
         current_user.name = name
 
