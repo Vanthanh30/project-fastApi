@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { useSearchParams, useNavigate, Link } from 'react-router-dom';
-import LayoutDefault from '../layout_default/layout_default';
-import ChatboxAI from '../../../components/Chatbox/ChatboxAI';
-import ProductService from '../../../service/client/productService';
-import './home.scss';
+import React, { useState, useEffect } from "react";
+import { useSearchParams, useNavigate, Link } from "react-router-dom";
+import LayoutDefault from "../layout_default/layout_default";
+import ChatboxAI from "../../../components/Chatbox/ChatboxAI";
+import ProductService from "../../../service/client/productService";
+import "./home.scss";
 import premiumImg from "../../../assets/premium.jpg";
 import faceImg from "../../../assets/face.jpg";
 import lipImg from "../../../assets/lip.jpg";
@@ -16,7 +16,8 @@ const Home = () => {
   const [error, setError] = useState(null);
 
   // Gray placeholder SVG
-  const grayPlaceholder = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="300" height="300"%3E%3Crect width="300" height="300" fill="%23e5e7eb"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="%239ca3af"%3ENo Image%3C/text%3E%3C/svg%3E';
+  const grayPlaceholder =
+    'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="300" height="300"%3E%3Crect width="300" height="300" fill="%23e5e7eb"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="%239ca3af"%3ENo Image%3C/text%3E%3C/svg%3E';
 
   useEffect(() => {
     const accessToken = searchParams.get("access_token");
@@ -33,7 +34,7 @@ const Home = () => {
   }, []);
 
   const getImageUrl = (imagePath) => {
-    if (!imagePath || imagePath === 'null' || imagePath === 'NULL') {
+    if (!imagePath || imagePath === "null" || imagePath === "NULL") {
       return grayPlaceholder;
     }
     return ProductService.getImageUrl(imagePath);
@@ -46,14 +47,14 @@ const Home = () => {
 
       const products = await ProductService.getFeaturedProducts(4);
 
-      const formatted = products.map(product => ({
+      const formatted = products.map((product) => ({
         id: product.id,
         name: product.name,
-        category: product.category_name || product.brand || 'Sản phẩm',
+        category: product.category_name || product.brand || "Sản phẩm",
         price: ProductService.formatPrice(product.price),
-        tag: product.status === 'active' && product.id ? 'MỚI NHẤT' : null,
+        tag: product.status === "active" && product.id ? "MỚI NHẤT" : null,
         image: getImageUrl(product.image),
-        rawPrice: product.price
+        rawPrice: product.price,
       }));
 
       setFeaturedProducts(formatted);
@@ -115,7 +116,7 @@ const Home = () => {
                 Những sản phẩm được yêu thích nhất, luôn chạy hàng đầu trên các
                 bảng xếp hạng
               </p>
-              <a href="/products" className="featured__link">
+              <a href="/collection" className="featured__link">
                 XEM TẤT CẢ →
               </a>
             </div>
@@ -159,7 +160,9 @@ const Home = () => {
                     </div>
                     <div className="product-card__info">
                       <h3 className="product-card__name">{product.name}</h3>
-                      <p className="product-card__category">{product.category}</p>
+                      <p className="product-card__category">
+                        {product.category}
+                      </p>
                       <p className="product-card__price">{product.price}₫</p>
                     </div>
                   </Link>
@@ -216,9 +219,9 @@ const Home = () => {
             <div className="seasonal__grid">
               {seasonalProducts.map((item) => {
                 const categoryKeyMap = {
-                  "MẶT": "face",
-                  "MÔI": "lips",
-                  "MẮT": "eyes",
+                  MẶT: "face",
+                  MÔI: "lips",
+                  MẮT: "eyes",
                 };
 
                 const categoryKey = categoryKeyMap[item.category];
@@ -239,7 +242,9 @@ const Home = () => {
                       </div>
                       <div className="seasonal-card__overlay">
                         <div className="seasonal-card__text">
-                          <h3 className="seasonal-card__category">{item.category}</h3>
+                          <h3 className="seasonal-card__category">
+                            {item.category}
+                          </h3>
                           <p className="seasonal-card__title">{item.title}</p>
                         </div>
                       </div>
