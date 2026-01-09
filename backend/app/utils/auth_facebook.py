@@ -21,7 +21,8 @@ def get_or_create_facebook_user(db: Session, profile: dict) -> User:
         email=email,
         name=name,
         password=None,
-        role_id=2
+        role_id=2,
+        is_verified=1
     )
 
     db.add(user)
