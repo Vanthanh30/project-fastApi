@@ -125,17 +125,28 @@ def verify_email(token: str, db: Session = Depends(get_db)):
 @router.post("/login", response_model=TokenResponse)
 def login_user(data: LoginRequest, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == data.email).first()
-    if not user.is_verified:
-        raise HTTPException(
-        status_code=403,
-        detail="Please verify your email before logging in"
-    )
+
     if not user or not user.password:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password"
         )
 
+    # ✅ Chặn admin đăng nhập bên user
+    if user.role_id != 2:
+        raise HTTPException(
+            status_code=403,
+            detail="Tài khoản admin không được phép đăng nhập tại đây"
+        )
+
+    # ✅ Check verify email
+    if not user.is_verified:
+        raise HTTPException(
+            status_code=403,
+            detail="Please verify your email before logging in"
+        )
+
+    # ✅ Check password
     if not verify_password(data.password, user.password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -148,6 +159,7 @@ def login_user(data: LoginRequest, db: Session = Depends(get_db)):
         "access_token": token,
         "token_type": "bearer"
     }
+
 
 @router.get("/me", response_model=UserResponse)
 def read_users_me(current_user: User = Depends(authenticate)):
