@@ -1,9 +1,11 @@
 from datetime import datetime 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from sqlalchemy.orm import Session, joinedload
+from fastapi import Query
+from sqlalchemy import or_
 from app.db.base import get_db
 from app.models.product import Product
-from app.schemas.product import ProductCreate, ProductResponse, ProductUpdate
+from app.schemas.product import ProductCreate, ProductResponse, ProductUpdate,  ProductSearchResponse
 from app.models.category import Category
 from app.middleware.cloudinary import upload_avatar
 from app.middleware.authenticate import admin_required
@@ -41,6 +43,27 @@ def get_all_products(db:Session = Depends(get_db)):
         .options(joinedload(Product.category))\
         .filter(Product.deleted_at.is_(None))\
         .all()
+    return products
+@router.get("/search", response_model=list[ProductSearchResponse])
+def search_products(
+    q: str = Query(..., min_length=2),
+    db: Session = Depends(get_db)
+):
+    products = (
+        db.query(Product)
+        .filter(
+            Product.deleted_at.is_(None),
+            Product.status == 1,
+            or_(
+                Product.name.ilike(f"%{q}%"),
+                Product.brand.ilike(f"%{q}%"),
+                Product.description.ilike(f"%{q}%"),
+            )
+        )
+        .limit(10)
+        .all()
+    )
+
     return products
 @router.get("/{product_id}", response_model=ProductResponse)
 def get_product_by_id(product_id: int, db: Session = Depends(get_db)):

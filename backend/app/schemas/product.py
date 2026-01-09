@@ -76,3 +76,12 @@ class ProductResponse(ProductCreate):
 
     class Config:
         from_attributes = True
+class ProductSearchResponse(BaseModel):
+    id: int
+    name: str
+    price: Decimal
+    image: Optional[str] = None
+    brand: Optional[str] = None
+
+    class Config:
+        from_attributes = True
