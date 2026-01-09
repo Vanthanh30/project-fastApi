@@ -13,6 +13,7 @@ import About from "../../pages/client/about";
 import Blog from "../../pages/client/blog";
 import Help from "../../pages/client/help";
 import Story from "../../pages/client/story";
+import ResetPassword from '../../pages/client/auth/resetpassword';
 export const clientRoute = [
   { path: "/", element: <Home /> },
   {
@@ -26,6 +27,10 @@ export const clientRoute = [
   {
     path: "/forgotpassword",
     element: <Forgot />,
+  },
+  {
+    path: "/reset-password",
+    element: < ResetPassword />,
   },
   {
     path: "/profile",

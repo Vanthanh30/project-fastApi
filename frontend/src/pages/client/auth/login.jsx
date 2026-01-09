@@ -17,13 +17,13 @@ const Login = () => {
   const [infoMessage, setInfoMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showResendButton, setShowResendButton] = useState(false); // Thêm state này
+  const [isResending, setIsResending] = useState(false); // Thêm state này
 
-  // Kiểm tra message từ register redirect
   useEffect(() => {
     if (location.state?.message) {
       setInfoMessage(location.state.message);
 
-      // Nếu có email từ register, tự động điền vào form
       if (location.state?.registeredEmail) {
         setFormData(prev => ({
           ...prev,
@@ -31,7 +31,6 @@ const Login = () => {
         }));
       }
 
-      // Clear state để tránh hiển thị lại khi refresh
       window.history.replaceState({}, document.title);
     }
   }, [location]);
@@ -43,6 +42,38 @@ const Login = () => {
       [name]: type === "checkbox" ? checked : value,
     }));
     setErrorMessage("");
+    setShowResendButton(false); // Ẩn nút khi user thay đổi input
+  };
+
+  // Hàm gửi lại email xác nhận - THÊM HÀM NÀY
+  const handleResendVerification = async () => {
+    if (!formData.email) {
+      setErrorMessage("Vui lòng nhập email");
+      return;
+    }
+
+    setIsResending(true);
+    setErrorMessage("");
+    setInfoMessage("");
+
+    try {
+      await axios.post(
+        `http://localhost:8000/auth/resend-verification?email=${formData.email}`
+      );
+
+      setInfoMessage("Email xác nhận đã được gửi lại. Vui lòng kiểm tra hộp thư của bạn.");
+      setShowResendButton(false);
+    } catch (error) {
+      console.error("Resend failed:", error);
+
+      if (error.response?.data?.detail) {
+        setErrorMessage(error.response.data.detail);
+      } else {
+        setErrorMessage("Không thể gửi email. Vui lòng thử lại sau.");
+      }
+    } finally {
+      setIsResending(false);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -50,6 +81,7 @@ const Login = () => {
     setIsLoading(true);
     setErrorMessage("");
     setInfoMessage("");
+    setShowResendButton(false); // Reset nút gửi lại
 
     try {
       const response = await axios.post("http://localhost:8000/auth/login", {
@@ -72,6 +104,7 @@ const Login = () => {
           setErrorMessage(
             "Email chưa được xác nhận. Vui lòng kiểm tra hộp thư và xác nhận email của bạn."
           );
+          setShowResendButton(true); // Hiện nút gửi lại email
         }
         else if (error.response.status === 401) {
           setErrorMessage("Email hoặc mật khẩu không chính xác");
@@ -105,7 +138,6 @@ const Login = () => {
               Chào mừng trở lại. Vui lòng đăng nhập vào tài khoản của bạn
             </p>
 
-            {/* Info Message */}
             {infoMessage && (
               <Alert
                 type="info"
@@ -114,13 +146,29 @@ const Login = () => {
               />
             )}
 
-            {/* Error Message */}
             {errorMessage && (
               <Alert
                 type="error"
                 message={errorMessage}
-                onClose={() => setErrorMessage("")}
+                onClose={() => {
+                  setErrorMessage("");
+                  setShowResendButton(false);
+                }}
               />
+            )}
+
+            {/* NÚT GỬI LẠI EMAIL - THÊM PHẦN NÀY */}
+            {showResendButton && (
+              <div className="auth__resend-section">
+                <button
+                  type="button"
+                  className="auth__resend-btn"
+                  onClick={handleResendVerification}
+                  disabled={isResending}
+                >
+                  {isResending ? "Đang gửi..." : "Gửi lại email xác nhận"}
+                </button>
+              </div>
             )}
 
             <div className="auth__social">
