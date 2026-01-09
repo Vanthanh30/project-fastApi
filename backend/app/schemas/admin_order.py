@@ -5,12 +5,17 @@ from typing import List
 from pydantic import BaseModel
 
 from app.models.order import OrderStatus
+class ProductResponse(BaseModel):
+    id: int
+    name: str
 
+    class Config:
+        from_attributes = True
 class OrderItemResponse(BaseModel):
     product_id: int
     quantity: int
     price: Decimal
-
+    product: ProductResponse | None 
     class Config:
         from_attributes = True
 class OrderResponse(BaseModel):

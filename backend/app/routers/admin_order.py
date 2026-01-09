@@ -17,7 +17,7 @@ def get_all_orders(db: Session = Depends(get_db)):
 
 @router.get("/{order_id}", response_model=OrderResponse,dependencies=[Depends(admin_required)])
 def get_order_by_id(order_id: int, db: Session = Depends(get_db)):
-    order = (db.query(Order).options(joinedload(Order.items)).filter(Order.id == order_id).first())
+    order = (db.query(Order).options(joinedload(Order.items).joinedload(OrderItem.product)).filter(Order.id == order_id).first())
 
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
