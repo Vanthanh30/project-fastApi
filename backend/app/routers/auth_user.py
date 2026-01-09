@@ -49,12 +49,10 @@ async def register_user(data: RegisterRequest, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(user)
 
-    # ✅ Create verify token
     verify_token = create_verify_token(user.id)
 
     verify_link = f"http://localhost:8000/auth/verify-email?token={verify_token}"
 
-    # ✅ Send verify email
     await send_email(
         to=user.email,
         subject="Verify your email",
@@ -103,7 +101,6 @@ def verify_email(token: str, db: Session = Depends(get_db)):
         user.is_verified = 1
         db.commit()
 
-    # ✅ TRANG CẢM ƠN
     return HTMLResponse(
         content="""
         <html>
@@ -126,28 +123,25 @@ def verify_email(token: str, db: Session = Depends(get_db)):
 def login_user(data: LoginRequest, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == data.email).first()
 
-    if not user or not user.password:
+    if not user:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid email or password"
+            status_code=status.HTTP_404_NOT_FOUND, 
+            detail="Tài khoản chưa tồn tại trong hệ thống"
         )
 
-    # ✅ Chặn admin đăng nhập bên user
     if user.role_id != 2:
         raise HTTPException(
             status_code=403,
             detail="Tài khoản admin không được phép đăng nhập tại đây"
         )
 
-    # ✅ Check verify email
     if not user.is_verified:
         raise HTTPException(
             status_code=403,
             detail="Please verify your email before logging in"
         )
 
-    # ✅ Check password
-    if not verify_password(data.password, user.password):
+    if not user.password or not verify_password(data.password, user.password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password"
@@ -190,7 +184,6 @@ async def update_user_me(
                 detail="Password must be at least 6 characters"
             )
         current_user.password = hash_password(password)
-    # ✅ Update avatar nếu có upload
     if avatar is not None:
         upload_result = await upload_avatar(avatar)
         current_user.avatar = upload_result["url"]
