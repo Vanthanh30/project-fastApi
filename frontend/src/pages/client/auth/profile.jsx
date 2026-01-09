@@ -164,8 +164,6 @@ const Profile = () => {
                 >
                   <span className="profile__menu-icon">
                     {item.id === "info" && <User size={20} />}
-                    {item.id === "orders" && <Package size={20} />}
-                    {item.id === "wishlist" && <Heart size={20} />}
                   </span>
                   <span className="profile__menu-label">{item.label}</span>
                 </button>
