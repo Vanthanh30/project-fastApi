@@ -26,20 +26,16 @@ const ProductDetail = () => {
   // Gray placeholder SVG
   const grayPlaceholder =
     'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="300" height="300"%3E%3Crect width="300" height="300" fill="%23e5e7eb"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="%239ca3af"%3ENo Image%3C/text%3E%3C/svg%3E';
-    const grayPlaceholder = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="300" height="300"%3E%3Crect width="300" height="300" fill="%23e5e7eb"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="%239ca3af"%3ENo Image%3C/text%3E%3C/svg%3E';
 
   useEffect(() => {
     fetchProductDetail();
   }, [id]);
-    useEffect(() => {
-        fetchProductDetail();
-    }, [id]);
 
-    const getAutoStatus = (quantity) => {
-        if (quantity === 0) return { text: 'Hết hàng', value: 3 };
-        if (quantity < 20) return { text: 'Sắp hết', value: 2 };
-        return { text: 'Còn hàng', value: 1 };
-    };
+  const getAutoStatus = (quantity) => {
+    if (quantity === 0) return { text: 'Hết hàng', value: 3 };
+    if (quantity < 20) return { text: 'Sắp hết', value: 2 };
+    return { text: 'Còn hàng', value: 1 };
+  };
 
   const fetchProductDetail = async () => {
     try {
@@ -113,27 +109,13 @@ const ProductDetail = () => {
       console.error(err);
       alert(
         err.response?.data?.message ||
-          err.message ||
-          "Không thể thêm vào giỏ hàng"
+        err.message ||
+        "Không thể thêm vào giỏ hàng"
       );
     } finally {
       setAddingToCart(false);
     }
   };
-            alert("Đã thêm sản phẩm vào giỏ hàng!");
-            setQuantity(1);
-            window.dispatchEvent(new Event("cart_updated"));
-        } catch (err) {
-            console.error(err);
-            alert(
-                err.response?.data?.message ||
-                err.message ||
-                "Không thể thêm vào giỏ hàng"
-            );
-        } finally {
-            setAddingToCart(false);
-        }
-    };
 
   const toggleAccordion = (key) => {
     setOpenAccordions((prev) => ({
@@ -170,32 +152,16 @@ const ProductDetail = () => {
         <div className="product-detail">
           <div className="container">
             <div className="error-state">
-              <p>{error || "Không tìm thấy sản phẩm"}</p>
-              <Link to="/" className="back-btn">
-                Về trang chủ
-              </Link>
+              <p>{error || 'Không tìm thấy sản phẩm'}</p>
+              <Link to="/" className="back-btn">Về trang chủ</Link>
             </div>
           </div>
         </div>
       </LayoutDefault>
     );
   }
-    if (error || !product) {
-        return (
-            <LayoutDefault>
-                <div className="product-detail">
-                    <div className="container">
-                        <div className="error-state">
-                            <p>{error || 'Không tìm thấy sản phẩm'}</p>
-                            <Link to="/" className="back-btn">Về trang chủ</Link>
-                        </div>
-                    </div>
-                </div>
-            </LayoutDefault>
-        );
-    }
 
-    const productStatus = getAutoStatus(product.quantity || 0);
+  const productStatus = getAutoStatus(product.quantity || 0);
 
   return (
     <LayoutDefault>
@@ -255,21 +221,19 @@ const ProductDetail = () => {
                 <div className="product-detail__quantity">
                   <button
                     className="product-detail__quantity-btn"
-                    onClick={() => handleQuantityChange("decrement")}
+                    onClick={() => handleQuantityChange('decrement')}
                   >
                     −
                   </button>
                   <input
                     type="number"
                     value={quantity}
-                    onChange={(e) =>
-                      setQuantity(Math.max(1, parseInt(e.target.value) || 1))
-                    }
+                    onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
                     className="product-detail__quantity-input"
                   />
                   <button
                     className="product-detail__quantity-btn"
-                    onClick={() => handleQuantityChange("increment")}
+                    onClick={() => handleQuantityChange('increment')}
                   >
                     +
                   </button>
@@ -277,62 +241,21 @@ const ProductDetail = () => {
                 <button
                   className="product-detail__buy-btn"
                   onClick={handleAddToCart}
-                  disabled={addingToCart}
+                  disabled={addingToCart || product.quantity === 0}
                 >
-                  {addingToCart
-                    ? "ĐANG THÊM..."
-                    : `THÊM VÀO GIỎ - ${ProductService.formatPrice(
-                        product.price * quantity
-                      )}₫`}
+                  {addingToCart ? 'ĐANG THÊM...' :
+                    product.quantity === 0 ? 'HẾT HÀNG' :
+                      `THÊM VÀO GIỎ - ${ProductService.formatPrice(product.price * quantity)}₫`}
                 </button>
                 <button
                   className="product-detail__cart-btn"
                   onClick={handleAddToCart}
-                  disabled={addingToCart}
+                  disabled={addingToCart || product.quantity === 0}
                   title="Thêm vào giỏ hàng"
                 >
                   <ShoppingCart size={20} />
                 </button>
               </div>
-                            <div className="product-detail__quantity-section">
-                                <div className="product-detail__quantity">
-                                    <button
-                                        className="product-detail__quantity-btn"
-                                        onClick={() => handleQuantityChange('decrement')}
-                                    >
-                                        −
-                                    </button>
-                                    <input
-                                        type="number"
-                                        value={quantity}
-                                        onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                                        className="product-detail__quantity-input"
-                                    />
-                                    <button
-                                        className="product-detail__quantity-btn"
-                                        onClick={() => handleQuantityChange('increment')}
-                                    >
-                                        +
-                                    </button>
-                                </div>
-                                <button
-                                    className="product-detail__buy-btn"
-                                    onClick={handleAddToCart}
-                                    disabled={addingToCart || product.quantity === 0}
-                                >
-                                    {addingToCart ? 'ĐANG THÊM...' :
-                                        product.quantity === 0 ? 'HẾT HÀNG' :
-                                            `THÊM VÀO GIỎ - ${ProductService.formatPrice(product.price * quantity)}₫`}
-                                </button>
-                                <button
-                                    className="product-detail__cart-btn"
-                                    onClick={handleAddToCart}
-                                    disabled={addingToCart || product.quantity === 0}
-                                    title="Thêm vào giỏ hàng"
-                                >
-                                    <ShoppingCart size={20} />
-                                </button>
-                            </div>
 
               <div className="product-detail__accordion">
                 <div className="product-detail__accordion-item">
@@ -348,9 +271,8 @@ const ProductDetail = () => {
                     )}
                   </button>
                   <div
-                    className={`product-detail__accordion-content ${
-                      openAccordions.description ? "open" : ""
-                    }`}
+                    className={`product-detail__accordion-content ${openAccordions.description ? "open" : ""
+                      }`}
                   >
                     <p>{product.description || "Không có mô tả chi tiết"}</p>
                     <ul className="product-detail__features-list">
@@ -364,60 +286,24 @@ const ProductDetail = () => {
                 <div className="product-detail__accordion-item">
                   <button
                     className="product-detail__accordion-header"
-                    onClick={() => toggleAccordion("info")}
+                    onClick={() => toggleAccordion('info')}
                   >
                     <span>THÔNG TIN SẢN PHẨM</span>
-                    {openAccordions.info ? (
-                      <ChevronDown size={20} />
-                    ) : (
+                    {openAccordions.info ?
+                      <ChevronDown size={20} /> :
                       <ChevronRight size={20} />
-                    )}
+                    }
                   </button>
-                  <div
-                    className={`product-detail__accordion-content ${
-                      openAccordions.info ? "open" : ""
-                    }`}
-                  >
-                    <p>
-                      <strong>Thương hiệu:</strong> {product.brand || "N/A"}
-                    </p>
-                    <p>
-                      <strong>Danh mục:</strong>{" "}
-                      {category?.name || product.category_name || "N/A"}
-                    </p>
-                    <p>
-                      <strong>Tình trạng:</strong>{" "}
-                      {product.status === "active" ? "Còn hàng" : "Hết hàng"}
-                    </p>
-                    <p>
-                      <strong>Số lượng còn:</strong> {product.quantity || 0}
-                    </p>
+                  <div className={`product-detail__accordion-content ${openAccordions.info ? 'open' : ''}`}>
+                    <p><strong>Thương hiệu:</strong> {product.brand || 'N/A'}</p>
+                    <p><strong>Danh mục:</strong> {category?.name || product.category_name || 'N/A'}</p>
+                    <p><strong>Tình trạng:</strong> {productStatus.text}</p>
+                    <p><strong>Số lượng còn:</strong> {product.quantity || 0}</p>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-                                <div className="product-detail__accordion-item">
-                                    <button
-                                        className="product-detail__accordion-header"
-                                        onClick={() => toggleAccordion('info')}
-                                    >
-                                        <span>THÔNG TIN SẢN PHẨM</span>
-                                        {openAccordions.info ?
-                                            <ChevronDown size={20} /> :
-                                            <ChevronRight size={20} />
-                                        }
-                                    </button>
-                                    <div className={`product-detail__accordion-content ${openAccordions.info ? 'open' : ''}`}>
-                                        <p><strong>Thương hiệu:</strong> {product.brand || 'N/A'}</p>
-                                        <p><strong>Danh mục:</strong> {category?.name || product.category_name || 'N/A'}</p>
-                                        <p><strong>Tình trạng:</strong> {productStatus.text}</p>
-                                        <p><strong>Số lượng còn:</strong> {product.quantity || 0}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
 
           {relatedProducts.length > 0 && (
             <section className="product-detail__related">
