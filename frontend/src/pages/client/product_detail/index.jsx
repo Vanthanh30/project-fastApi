@@ -17,7 +17,7 @@ const ProductDetail = () => {
     const [error, setError] = useState(null);
     const [addingToCart, setAddingToCart] = useState(false);
 
-    const [selectedImage, setSelectedImage] = useState(0);
+
     const [quantity, setQuantity] = useState(1);
     const [openAccordions, setOpenAccordions] = useState({
         description: false,
