@@ -14,7 +14,7 @@ router = APIRouter(prefix="/products", tags=["Products"])
 @router.post("/", response_model=ProductResponse,dependencies=[Depends(admin_required)])
 async def create_product (    
     data: ProductCreate = Depends(ProductCreate.as_form),
-    image: Optional[str] = None,
+    image: UploadFile | None = File(None),
     db: Session = Depends(get_db)):
 
     category = db.query(Category).filter(Category.id == data.category_id).first()
@@ -58,7 +58,7 @@ def get_product_by_id(product_id: int, db: Session = Depends(get_db)):
 async def update_product(
     product_id: int,
     data: ProductUpdate = Depends(ProductUpdate.as_form),
-    image: Optional[str] = None,
+    image: UploadFile | None = File(None),
     db: Session = Depends(get_db)
 ):
     product = get_product_by_id(product_id, db)
