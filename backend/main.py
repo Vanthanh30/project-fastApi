@@ -11,6 +11,7 @@ from app.routers.category import router as category_router
 from app.routers.product import router as product_router
 from app.routers.chatbot import router as chatbot_router
 from app.routers.admin_order import router as admin_order_router
+from app.routers.admin_order import router as dashboard
 import app.core.cloudinary_config
 # from app.utils.seed_admin import seed_admin
 from app.routers.auth_google import router as auth_google_router
@@ -58,6 +59,7 @@ app.include_router(category_router)
 app.include_router(product_router)
 app.include_router(chatbot_router)
 app.include_router(admin_order_router)
+app.include_router(dashboard.router)
 # seed_admin()
 app.include_router(auth_google_router)
 app.include_router(auth_facebook_router)
