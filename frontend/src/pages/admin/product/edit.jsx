@@ -47,7 +47,7 @@ const EditProduct = () => {
       setFormData({
         name: data.name || "",
         description: data.description || "",
-        price: data.price || "",
+        price: data.price ? parseInt(data.price) : "",
         quantity: data.quantity || "",
         category_id: data.category_id || "",
         status: data.status || 1,
@@ -227,15 +227,16 @@ const EditProduct = () => {
                   <img
                     src={imagePreview}
                     alt="Preview"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = "https://placehold.co/200x200?text=No+Image";
+                    }}
                     style={{
                       maxWidth: "200px",
                       maxHeight: "200px",
                       objectFit: "cover",
                       borderRadius: "8px",
-                      border: "2px solid #e0e0e0"
-                    }}
-                    onError={(e) => {
-                      e.target.src = "https://via.placeholder.com/200";
+                      border: "2px solid #e0e0e0",
                     }}
                   />
                 </div>
@@ -303,65 +304,6 @@ const EditProduct = () => {
                   </option>
                 ))}
               </select>
-            </div>
-            <div>
-              <label className="create-product-page__label">Trạng thái</label>
-              <div className="create-product-page__radio-group">
-                <label
-                  className={`create-product-page__radio-label ${formData.status === 1 ? "active" : ""
-                    }`}
-                >
-                  <input
-                    type="radio"
-                    name="status"
-                    value="1"
-                    checked={formData.status === 1}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        status: parseInt(e.target.value),
-                      }))
-                    }
-                  />
-                  Đang bán
-                </label>
-                <label
-                  className={`create-product-page__radio-label ${formData.status === 2 ? "active" : ""
-                    }`}
-                >
-                  <input
-                    type="radio"
-                    name="status"
-                    value="2"
-                    checked={formData.status === 2}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        status: parseInt(e.target.value),
-                      }))
-                    }
-                  />
-                  Sắp hết
-                </label>
-                <label
-                  className={`create-product-page__radio-label ${formData.status === 3 ? "active" : ""
-                    }`}
-                >
-                  <input
-                    type="radio"
-                    name="status"
-                    value="3"
-                    checked={formData.status === 3}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        status: parseInt(e.target.value),
-                      }))
-                    }
-                  />
-                  Hết hàng
-                </label>
-              </div>
             </div>
           </div>
         </div>
