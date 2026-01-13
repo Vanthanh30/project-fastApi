@@ -19,6 +19,7 @@ const ProductPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [imageErrors, setImageErrors] = useState({});
 
   const itemsPerPage = 10;
   const getAutoStatus = (quantity) => {
@@ -93,6 +94,13 @@ const ProductPage = () => {
     setSelectedCategory(e.target.value);
   };
 
+  const handleImageError = (productId) => {
+    setImageErrors(prev => ({
+      ...prev,
+      [productId]: true
+    }));
+  };
+
   const handleDelete = async (productId) => {
     if (window.confirm("Bạn có chắc chắn muốn xóa sản phẩm này?")) {
       try {
@@ -155,8 +163,6 @@ const ProductPage = () => {
     if (stock < 20) return "product-page__progress-fill--medium";
     return "product-page__progress-fill--high";
   };
-
-  // Pagination logic
   const totalItems = filteredProducts.length;
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -198,7 +204,6 @@ const ProductPage = () => {
       <Sidebar />
 
       <div className="product-page__content">
-        {/* Header */}
         <div className="product-page__header">
           <div className="product-page__header-info">
             <h1 className="product-page__title">Quản lý sản phẩm</h1>
@@ -257,8 +262,6 @@ const ProductPage = () => {
             Hết hàng
           </button>
         </div>
-
-        {/* Table */}
         <div className="product-page__table-wrapper">
           {currentItems.length === 0 ? (
             <div className="product-page__empty">
@@ -285,8 +288,8 @@ const ProductPage = () => {
               </thead>
               <tbody>
                 {currentItems.map((product, index) => {
-                  // Tính toán trạng thái tự động dựa trên tồn kho
                   const autoStatus = getAutoStatus(product.quantity);
+                  const hasImageError = imageErrors[product.id];
 
                   return (
                     <tr
@@ -298,15 +301,19 @@ const ProductPage = () => {
                       </td>
                       <td>
                         <div className="product-page__product-info">
-                          <img
-                            src={ProductService.getImageUrl(product.image)}
-                            alt={product.name}
-                            className="product-page__product-img"
-                            loading="lazy"
-                            onError={(e) => {
-                              e.target.src = "https://via.placeholder.com/100";
-                            }}
-                          />
+                          {!hasImageError ? (
+                            <img
+                              src={ProductService.getImageUrl(product.image)}
+                              alt={product.name}
+                              className="product-page__product-img"
+                              loading="lazy"
+                              onError={() => handleImageError(product.id)}
+                            />
+                          ) : (
+                            <div className="product-page__product-img product-page__product-img--placeholder">
+                              <Package size={24} />
+                            </div>
+                          )}
                           <div className="product-page__product-detail">
                             <span className="product-page__product-name">
                               {product.name}
@@ -379,8 +386,6 @@ const ProductPage = () => {
             </table>
           )}
         </div>
-
-        {/* Pagination */}
         <Pagination
           currentPage={currentPage}
           totalItems={totalItems}
