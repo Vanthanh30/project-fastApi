@@ -16,6 +16,7 @@ const Collection = () => {
     const [filteredProducts, setFilteredProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [imageErrors, setImageErrors] = useState({});
     const categoryFromUrl = searchParams.get("category");
     const [selectedCategory, setSelectedCategory] = useState('all');
     const [priceRange, setPriceRange] = useState([0, 5000000]);
@@ -134,6 +135,14 @@ const Collection = () => {
             setLoading(false);
         }
     };
+
+    const handleImageError = (productId) => {
+        setImageErrors(prev => ({
+            ...prev,
+            [productId]: true
+        }));
+    };
+
     const matchesProductType = (product, typeId) => {
         const productType = productTypes.find(type => type.id === typeId);
         if (!productType) return false;
@@ -316,13 +325,17 @@ const Collection = () => {
                                         )}
 
                                         <div className="collection__product-image">
-                                            <img
-                                                src={ProductService.getImageUrl(product.image)}
-                                                alt={product.name}
-                                                onError={(e) => {
-                                                    e.target.src = 'https://via.placeholder.com/300x400?text=No+Image';
-                                                }}
-                                            />
+                                            {!imageErrors[product.id] ? (
+                                                <img
+                                                    src={ProductService.getImageUrl(product.image)}
+                                                    alt={product.name}
+                                                    onError={() => handleImageError(product.id)}
+                                                />
+                                            ) : (
+                                                <div className="collection__image-placeholder">
+                                                    <span>No Image</span>
+                                                </div>
+                                            )}
                                         </div>
 
                                         <div className="collection__product-info">
@@ -330,6 +343,8 @@ const Collection = () => {
                                                 {product.brand || 'LUMIÈRE'}
                                             </p>
                                             <h3 className="collection__product-name">{product.name}</h3>
+
+                                            <div className="collection__product-divider"></div>
 
                                             <div className="collection__product-price">
                                                 <span className="collection__price-current">
