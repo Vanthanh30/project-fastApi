@@ -57,7 +57,7 @@ def handle_chat(message: str, db: Session) -> ChatResponse:
 
     if not products:
         return ChatResponse(
-            reply="😊 Bạn có thể cho mình biết rõ hơn nhu cầu để mình tư vấn chính xác hơn nha!"
+            reply="Bạn có thể cho mình biết rõ hơn nhu cầu để mình tư vấn chính xác hơn nha!"
         )
 
     # 🔹 Chuẩn bị context
