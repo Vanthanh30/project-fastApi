@@ -419,7 +419,7 @@ const OrderPage = () => {
                       {selectedOrder.items && selectedOrder.items.length > 0 ? (
                         selectedOrder.items.map((item, index) => (
                           <tr key={index}>
-                            <td>{item.product_name || item.name || "N/A"}</td>
+                            <td>{item.product?.name || "N/A"}</td>
                             <td className="text-center">{item.quantity}</td>
                             <td>{formatCurrency(item.price)}</td>
                             <td>{formatCurrency(item.quantity * item.price)}</td>
