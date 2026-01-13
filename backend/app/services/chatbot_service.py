@@ -9,39 +9,35 @@ from app.models.category import Category
 
 client = OpenAI(api_key=settings.OPENAI_API_KEY)
 
-
+STOP_WORDS = {
+    "shop", "có", "không", "cho", "tôi", "mình", "bạn",
+    "về", "các", "loại", "nào", "giúp", "tìm"
+}
 def handle_chat(message: str, db: Session) -> ChatResponse:
-    msg = message.lower()
+    msg = message.lower().strip()
 
-    categories = (
-        db.query(Category)
-        .filter(Category.status == 1)
+    exact_products = (
+        db.query(Product)
+        .join(Category)
+        .filter(
+            Product.status == 1,
+            Category.status == 1,
+            Product.name.ilike(f"%{msg}%")
+        )
+        .limit(5)
         .all()
     )
 
-    query = db.query(Product).join(Category)
-
-    # 1️⃣ Match category phrase động
-    matched_category = None
-    for c in categories:
-        if c.name.lower() in msg:
-            matched_category = c
-            break
-
-    if matched_category:
-        products = (
-            query
-            .filter(Product.category_id == matched_category.id)
-            .limit(6)
-            .all()
-        )
+    if exact_products:
+        products = exact_products
     else:
-        # 2️⃣ fallback keyword search
-        keywords = msg.split()
+        keywords = [
+            w for w in msg.split()
+            if w not in STOP_WORDS and len(w) > 1
+        ]
+
         conditions = []
         for kw in keywords:
-            if len(kw) < 3:
-                continue
             like = f"%{kw}%"
             conditions.extend([
                 Product.name.ilike(like),
@@ -50,17 +46,27 @@ def handle_chat(message: str, db: Session) -> ChatResponse:
                 Category.name.ilike(like),
             ])
 
+        products = []
         if conditions:
-            query = query.filter(or_(*conditions))
+            products = (
+                db.query(Product)
+                .join(Category)
+                .filter(
+                    Product.status == 1,
+                    Category.status == 1,
+                    or_(*conditions)
+                )
+                .distinct()
+                .limit(10)
+                .all()
+            )
 
-        products = query.limit(6).all()
 
     if not products:
         return ChatResponse(
             reply="Bạn có thể cho mình biết rõ hơn nhu cầu để mình tư vấn chính xác hơn nha!"
         )
 
-    # 🔹 Chuẩn bị context
     product_context = "\n".join([
         f"- {p.name} | Giá: {int(p.price):,}đ | "
         f"Thương hiệu: {p.brand or 'Không rõ'} | "
