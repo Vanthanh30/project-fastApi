@@ -23,8 +23,6 @@ const Dashboard = () => {
     totalOrders: 0,
     totalProducts: 0,
     totalUsers: 0,
-    revenueChange: "+0.0%",
-    ordersChange: "+0.0%",
     bestSellers: [],
     recentOrders: [],
     chartData: []
@@ -49,71 +47,62 @@ const Dashboard = () => {
       console.log('Orders loaded:', orders.length, orders);
       console.log('Users loaded:', users.length, users);
 
-      const currentDate = new Date();
-      const currentMonth = currentDate.getMonth();
-      const currentYear = currentDate.getFullYear();
-      const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
-      const lastMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
-
-      const currentMonthRevenue = orders
-        .filter(order => {
-          if (order.status !== "Đã giao") return false;
-          const orderDate = new Date(order.created_at);
-          return orderDate.getMonth() === currentMonth && orderDate.getFullYear() === currentYear;
-        })
-        .reduce((sum, order) => sum + (order.total || 0), 0);
-
-      const lastMonthRevenue = orders
-        .filter(order => {
-          if (order.status !== "Đã giao") return false;
-          const orderDate = new Date(order.created_at);
-          return orderDate.getMonth() === lastMonth && orderDate.getFullYear() === lastMonthYear;
-        })
-        .reduce((sum, order) => sum + (order.total || 0), 0);
-
-      const revenueChange = lastMonthRevenue > 0
-        ? ((currentMonthRevenue - lastMonthRevenue) / lastMonthRevenue * 100).toFixed(1)
-        : "0.0";
-      const revenueChangeStr = revenueChange >= 0 ? `+${revenueChange}%` : `${revenueChange}%`;
-
-      const totalRevenue = orders
+      // Tính tổng doanh thu từ tổng giá tiền sản phẩm của đơn hàng "Đã giao"
+      let totalRevenue = 0;
+      orders
         .filter(order => order.status === "Đã giao")
-        .reduce((sum, order) => sum + (order.total || 0), 0);
+        .forEach(order => {
+          if (order.items && Array.isArray(order.items)) {
+            order.items.forEach(item => {
+              const itemTotal = (item.price || 0) * (item.quantity || 0);
+              totalRevenue += itemTotal;
+            });
+          }
+        });
 
-      const currentMonthOrders = orders.filter(order => {
-        const orderDate = new Date(order.created_at);
-        return orderDate.getMonth() === currentMonth && orderDate.getFullYear() === currentYear;
-      }).length;
+      console.log('Total Revenue from product prices:', totalRevenue);
 
-      const lastMonthOrders = orders.filter(order => {
-        const orderDate = new Date(order.created_at);
-        return orderDate.getMonth() === lastMonth && orderDate.getFullYear() === lastMonthYear;
-      }).length;
-
-      const ordersChange = lastMonthOrders > 0
-        ? ((currentMonthOrders - lastMonthOrders) / lastMonthOrders * 100).toFixed(1)
-        : "0.0";
-      const ordersChangeStr = ordersChange >= 0 ? `+${ordersChange}%` : `${ordersChange}%`;
-
-      console.log('Total Revenue:', totalRevenue);
-      console.log('Revenue Change:', revenueChangeStr);
-      console.log('Orders Change:', ordersChangeStr);
-
+      // Tổng số đơn hàng
       const totalOrders = orders.length;
 
+      // Tính số lượng đã bán cho từng sản phẩm từ đơn hàng "Đã giao"
+      const productSales = {};
+
+      orders
+        .filter(order => order.status === "Đã giao")
+        .forEach(order => {
+          if (order.items && Array.isArray(order.items)) {
+            order.items.forEach(item => {
+              const productId = item.product_id || item.product?.id;
+              if (productId) {
+                const quantity = parseInt(item.quantity) || 0;
+                productSales[productId] = (productSales[productId] || 0) + quantity;
+              }
+            });
+          }
+        });
+
+      console.log('Product Sales from delivered orders:', productSales);
+
+      // Tạo danh sách sản phẩm bán chạy với số lượng đã bán từ đơn hàng
       const bestSellers = products
-        .sort((a, b) => (b.sold || 0) - (a.sold || 0))
-        .slice(0, 4)
-        .map(product => ({
-          id: product.id,
-          name: product.name,
-          category: `${product.category?.name || 'N/A'} • ${product.sold || 0} Đã bán`,
-          price: product.price,
-          img: ProductService.getImageUrl(product.image)
-        }));
+        .map(product => {
+          const soldQuantity = productSales[product.id] || 0;
+          return {
+            id: product.id,
+            name: product.name,
+            category: `${product.category?.name || 'N/A'} • ${soldQuantity} Đã bán`,
+            price: product.price,
+            img: ProductService.getImageUrl(product.image),
+            soldQuantity: soldQuantity
+          };
+        })
+        .sort((a, b) => b.soldQuantity - a.soldQuantity)
+        .slice(0, 4);
 
       console.log('Best Sellers:', bestSellers);
 
+      // Lấy 5 đơn hàng gần nhất
       const recentOrders = orders
         .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
         .slice(0, 5)
@@ -129,7 +118,7 @@ const Dashboard = () => {
           total: order.total || 0
         }));
 
-      console.log('Recent Orders:', recentOrders);
+      console.log('Recent Orders (limited to 5):', recentOrders);
 
       const chartData = generateChartData(orders);
       console.log('Chart Data:', chartData);
@@ -139,8 +128,6 @@ const Dashboard = () => {
         totalOrders,
         totalProducts: products.length,
         totalUsers: users.length,
-        revenueChange: revenueChangeStr,
-        ordersChange: ordersChangeStr,
         bestSellers,
         recentOrders,
         chartData
@@ -186,7 +173,14 @@ const Dashboard = () => {
         const orderDate = new Date(order.created_at);
         if (orderDate.getFullYear() === currentYear) {
           const month = orderDate.getMonth() + 1;
-          monthlyRevenue[month] += order.total || 0;
+
+          // Tính doanh thu từ tổng giá tiền sản phẩm
+          if (order.items && Array.isArray(order.items)) {
+            order.items.forEach(item => {
+              const itemTotal = (item.price || 0) * (item.quantity || 0);
+              monthlyRevenue[month] += itemTotal;
+            });
+          }
         }
       }
     });
@@ -213,31 +207,31 @@ const Dashboard = () => {
       case "Đã giao":
         return (
           <span className="dashboard-page__status-pill dashboard-page__status-pill--delivered">
-            ● Đã giao
+            Đã giao
           </span>
         );
       case "Chờ xác nhận":
         return (
           <span className="dashboard-page__status-pill dashboard-page__status-pill--pending">
-            ● Chờ xác nhận
+            Chờ xác nhận
           </span>
         );
       case "Đang giao":
         return (
           <span className="dashboard-page__status-pill dashboard-page__status-pill--delivering">
-            ● Đang giao
+            Đang giao
           </span>
         );
       case "Đã hủy":
         return (
           <span className="dashboard-page__status-pill dashboard-page__status-pill--cancelled">
-            ● Đã hủy
+            Đã hủy
           </span>
         );
       default:
         return (
           <span className="dashboard-page__status-pill dashboard-page__status-pill--pending">
-            ● {status}
+            {status}
           </span>
         );
     }
@@ -284,32 +278,24 @@ const Dashboard = () => {
       value: dashboardData.totalRevenue,
       icon: <Wallet size={24} />,
       type: "money",
-      change: dashboardData.revenueChange,
-      trend: dashboardData.revenueChange.startsWith('+') ? "up" : dashboardData.revenueChange.startsWith('-') ? "down" : "neutral",
     },
     {
       title: "Đơn hàng",
       value: dashboardData.totalOrders,
       icon: <ShoppingBag size={24} />,
       type: "order",
-      change: dashboardData.ordersChange,
-      trend: dashboardData.ordersChange.startsWith('+') ? "up" : dashboardData.ordersChange.startsWith('-') ? "down" : "neutral",
     },
     {
       title: "Sản phẩm",
       value: dashboardData.totalProducts,
       icon: <Box size={24} />,
       type: "product",
-      change: "0.0%",
-      trend: "neutral",
     },
     {
       title: "Tài khoản",
       value: dashboardData.totalUsers,
       icon: <Users size={24} />,
       type: "user",
-      change: "0.0%",
-      trend: "neutral",
     },
   ];
 
@@ -327,11 +313,6 @@ const Dashboard = () => {
                 >
                   {stat.icon}
                 </div>
-                <span
-                  className={`dashboard-page__stat-badge dashboard-page__stat-badge--${stat.trend}`}
-                >
-                  {stat.change}
-                </span>
               </div>
               <div className="dashboard-page__stat-info">
                 <span className="dashboard-page__stat-label">{stat.title}</span>
