@@ -5,19 +5,16 @@ import Search from "../../../components/Search/Search";
 import "./layout_default.scss";
 
 const Header = () => {
-  const [searchQuery, setSearchQuery] = useState("");
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
 
-  // ✅ FIX: cart count
   const [cartCount, setCartCount] = useState(0);
 
   const userMenuRef = useRef(null);
   const navigate = useNavigate();
 
-  /* ================= USER ================= */
   useEffect(() => {
     const fetchUserData = async () => {
       const token = localStorage.getItem("access_token");
@@ -38,6 +35,7 @@ const Header = () => {
         setIsLoggedIn(true);
         setUser(response.data);
       } catch (error) {
+        console.error("Lỗi lấy thông tin user:", error);
         localStorage.removeItem("access_token");
         setIsLoggedIn(false);
         setUser(null);
@@ -47,7 +45,6 @@ const Header = () => {
     fetchUserData();
   }, []);
 
-  /* ================= CART ================= */
   const fetchCartCount = async () => {
     const token = localStorage.getItem("access_token");
     if (!token) {
@@ -76,7 +73,6 @@ const Header = () => {
     return () => window.removeEventListener("cart_updated", handler);
   }, []);
 
-  /* ================= CLICK OUTSIDE ================= */
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
@@ -87,7 +83,6 @@ const Header = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  /* ================= HANDLER ================= */
   const handleCartClick = () => navigate("/cart");
 
   const toggleUserMenu = () => setIsUserMenuOpen(!isUserMenuOpen);
