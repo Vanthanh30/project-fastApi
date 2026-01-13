@@ -1,0 +1,396 @@
+.story {
+  background-color: #fff;
+  color: #222;
+  font-family: "Playfair Display", serif;
+  overflow-x: hidden;
+}
+
+/* FADE IN ANIMATION */
+.fade-in {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+
+.fade-in.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* HERO */
+.story__hero {
+  height: 600px;
+  background-image: url("https://images.unsplash.com/photo-1556228578-8c89e6adf883");
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  background-attachment: fixed;
+}
+
+.story__hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.5), rgba(40, 20, 10, 0.4));
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: #fff;
+  text-align: center;
+  padding: 0 20px;
+}
+
+.story__tagline {
+  letter-spacing: 4px;
+  font-size: 12px;
+  margin-bottom: 20px;
+  color: #e5c07b;
+  text-transform: uppercase;
+  font-weight: 400;
+  animation: fadeInDown 1s ease-out;
+}
+
+.story__hero h1 {
+  font-size: 56px;
+  margin-bottom: 24px;
+  font-weight: 400;
+  line-height: 1.2;
+  animation: fadeInUp 1s ease-out 0.2s both;
+}
+
+.story__hero p {
+  font-size: 18px;
+  max-width: 700px;
+  line-height: 1.6;
+  opacity: 0.95;
+  animation: fadeInUp 1s ease-out 0.4s both;
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* SECTION */
+.story__section {
+  max-width: 1200px;
+  margin: 100px auto;
+  padding: 0 40px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: center;
+}
+
+.story__reverse {
+  grid-template-columns: 1fr 1fr;
+}
+
+.story__text h2 {
+  font-size: 40px;
+  margin-bottom: 28px;
+  font-weight: 400;
+  color: #1a1a1a;
+}
+
+.story__text p {
+  font-size: 16px;
+  line-height: 1.9;
+  margin-bottom: 20px;
+  color: #444;
+  font-family: "Lora", serif;
+}
+
+.story__image {
+  position: relative;
+  overflow: hidden;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+}
+
+.story__image img {
+  width: 100%;
+  height: 500px;
+  object-fit: cover;
+  transition: transform 0.6s ease;
+}
+
+.story__image:hover img {
+  transform: scale(1.05);
+}
+
+/* PHILOSOPHY */
+.story__philosophy {
+  background: linear-gradient(135deg, #f8f5f2 0%, #fff 100%);
+  padding: 100px 40px;
+}
+
+.story__philosophy-content {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.story__philosophy h2 {
+  font-size: 42px;
+  text-align: center;
+  margin-bottom: 24px;
+  font-weight: 400;
+}
+
+.philosophy-lead {
+  text-align: center;
+  font-size: 20px;
+  max-width: 800px;
+  margin: 0 auto 60px;
+  color: #555;
+  font-style: italic;
+  line-height: 1.7;
+}
+
+.philosophy-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 50px;
+  margin-top: 50px;
+}
+
+.philosophy-item h3 {
+  font-size: 24px;
+  margin-bottom: 16px;
+  color: #1a1a1a;
+}
+
+.philosophy-item p {
+  font-size: 16px;
+  line-height: 1.8;
+  color: #555;
+  font-family: "Lora", serif;
+}
+
+/* COMMITMENT */
+.story__commitment {
+  max-width: 1200px;
+  margin: 100px auto;
+  padding: 0 40px;
+}
+
+.story__commitment h2 {
+  font-size: 42px;
+  text-align: center;
+  margin-bottom: 60px;
+  font-weight: 400;
+}
+
+.commitment-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 40px;
+}
+
+.commitment-card {
+  background: #fff;
+  padding: 40px 30px;
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.06);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  text-align: center;
+}
+
+.commitment-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+}
+
+.commitment-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #c4956c;
+}
+
+.commitment-card h3 {
+  font-size: 22px;
+  margin-bottom: 16px;
+  color: #1a1a1a;
+}
+
+.commitment-card p {
+  font-size: 15px;
+  line-height: 1.8;
+  color: #555;
+  font-family: "Lora", serif;
+}
+
+/* VALUES */
+.story__values {
+  background: linear-gradient(135deg, #2c2416 0%, #1a1410 100%);
+  padding: 100px 40px;
+  text-align: center;
+  color: #fff;
+}
+
+.story__values h2 {
+  font-size: 42px;
+  margin-bottom: 20px;
+  font-weight: 400;
+  color: #fff;
+}
+
+.values-intro {
+  font-size: 18px;
+  max-width: 600px;
+  margin: 0 auto 60px;
+  color: #d4c5b9;
+  font-style: italic;
+}
+
+.story__values-grid {
+  max-width: 1200px;
+  margin: auto;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 40px;
+}
+
+.value-card {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 50px 35px;
+  border-radius: 16px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: transform 0.3s ease, background 0.3s ease;
+}
+
+.value-card:hover {
+  transform: translateY(-8px);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.value-icon {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #e5c07b;
+}
+
+.value-card h3 {
+  font-size: 26px;
+  margin-bottom: 20px;
+  color: #fff;
+  font-weight: 400;
+}
+
+.value-card p {
+  font-size: 15px;
+  line-height: 1.8;
+  color: #d4c5b9;
+  font-family: "Lora", serif;
+}
+
+/* CLOSING */
+.story__closing {
+  max-width: 900px;
+  margin: 100px auto;
+  padding: 60px 40px;
+  text-align: center;
+  background: linear-gradient(135deg, #f8f5f2 0%, #fff 100%);
+  border-radius: 16px;
+}
+
+.closing-content h2 {
+  font-size: 40px;
+  margin-bottom: 28px;
+  font-weight: 400;
+  color: #1a1a1a;
+}
+
+.closing-content p {
+  font-size: 17px;
+  line-height: 1.9;
+  margin-bottom: 20px;
+  color: #555;
+  font-family: "Lora", serif;
+}
+
+/* RESPONSIVE */
+@media (max-width: 968px) {
+  .story__section {
+    grid-template-columns: 1fr;
+    gap: 50px;
+    margin: 70px auto;
+  }
+
+  .philosophy-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .commitment-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .story__values-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .story__hero h1 {
+    font-size: 40px;
+  }
+
+  .story__text h2 {
+    font-size: 32px;
+  }
+
+  .story__image img {
+    height: 400px;
+  }
+}
+
+@media (max-width: 640px) {
+  .story__hero {
+    height: 500px;
+  }
+
+  .story__hero h1 {
+    font-size: 32px;
+  }
+
+  .story__hero p {
+    font-size: 16px;
+  }
+
+  .story__section {
+    padding: 0 20px;
+  }
+
+  .story__text h2,
+  .story__philosophy h2,
+  .story__commitment h2,
+  .story__values h2 {
+    font-size: 28px;
+  }
+}

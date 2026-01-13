@@ -1,0 +1,387 @@
+import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import Search from "../../../components/Search/Search";
+import "./layout_default.scss";
+
+const Header = () => {
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [user, setUser] = useState(null);
+
+  const [cartCount, setCartCount] = useState(0);
+
+  const userMenuRef = useRef(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const token = localStorage.getItem("access_token");
+
+      if (!token) {
+        setIsLoggedIn(false);
+        setUser(null);
+        return;
+      }
+
+      try {
+        const response = await axios.get("http://localhost:8000/auth/me", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        setIsLoggedIn(true);
+        setUser(response.data);
+      } catch (error) {
+        console.error("Lỗi lấy thông tin user:", error);
+        localStorage.removeItem("access_token");
+        setIsLoggedIn(false);
+        setUser(null);
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
+  const fetchCartCount = async () => {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      setCartCount(0);
+      return;
+    }
+
+    try {
+      const res = await axios.get("http://localhost:8000/cart/", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const items = res.data?.items || [];
+      setCartCount(items.reduce((s, i) => s + i.quantity, 0));
+    } catch (e) {
+      console.error(e);
+      setCartCount(0);
+    }
+  };
+
+  useEffect(() => {
+    fetchCartCount();
+    const handler = () => fetchCartCount();
+    window.addEventListener("cart_updated", handler);
+
+    return () => window.removeEventListener("cart_updated", handler);
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+        setIsUserMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleCartClick = () => navigate("/cart");
+
+  const toggleUserMenu = () => setIsUserMenuOpen(!isUserMenuOpen);
+
+  const handleLogin = () => {
+    setIsUserMenuOpen(false);
+    navigate("/login");
+  };
+
+  const handleRegister = () => {
+    setIsUserMenuOpen(false);
+    navigate("/register");
+  };
+
+  const handleProfile = () => {
+    setIsUserMenuOpen(false);
+    navigate("/profile");
+  };
+
+  const handleOrders = () => {
+    setIsUserMenuOpen(false);
+    navigate("/order");
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("access_token");
+    setIsLoggedIn(false);
+    setUser(null);
+    setCartCount(0);
+    setIsUserMenuOpen(false);
+    navigate("/");
+  };
+
+  return (
+    <header className="header">
+      <div className="header__container">
+        <a href="/" className="header__logo">
+          <span className="header__logo-star">★</span>
+          <span className="header__logo-text">LUMIÈRE</span>
+        </a>
+
+        <nav className="header__nav">
+          <a href="/collection" className="header__nav-link">
+            BỘ SƯU TẬP
+          </a>
+          <a href="/blog" className="header__nav-link">
+            BÀI VIẾT
+          </a>
+          <a href="/help" className="header__nav-link">
+            TRỢ GIÚP
+          </a>
+          <a href="/about" className="header__nav-link">
+            VỀ CHÚNG TÔI
+          </a>
+        </nav>
+
+        <div className="header__actions">
+          <div className="header__search">
+            <Search />
+          </div>
+
+          <div className="header__user-menu" ref={userMenuRef}>
+            <button
+              className="header__icon-btn"
+              aria-label="User Account"
+              onClick={toggleUserMenu}
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path d="M10 10C12.7614 10 15 7.76142 15 5C15 2.23858 12.7614 0 10 0C7.23858 0 5 2.23858 5 5C5 7.76142 7.23858 10 10 10Z" />
+                <path d="M10 12.5C5.58172 12.5 2 14.5817 2 17.5V20H18V17.5C18 14.5817 14.4183 12.5 10 12.5Z" />
+              </svg>
+            </button>
+
+            {isUserMenuOpen && (
+              <div className="header__dropdown">
+                {!isLoggedIn ? (
+                  <>
+                    <button
+                      className="header__dropdown-item"
+                      onClick={handleLogin}
+                    >
+                      <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                      >
+                        <path
+                          d="M15 3H19C19.5304 3 20.0391 3.21071 20.4142 3.58579C20.7893 3.96086 21 4.46957 21 5V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H15"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                        <path
+                          d="M10 17L15 12L10 7"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                        <path
+                          d="M15 12H3"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                      <span>Đăng Nhập</span>
+                    </button>
+                    <button
+                      className="header__dropdown-item"
+                      onClick={handleRegister}
+                    >
+                      <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                      >
+                        <path
+                          d="M16 21V19C16 17.9391 15.5786 16.9217 14.8284 16.1716C14.0783 15.4214 13.0609 15 12 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                        <path
+                          d="M8.5 11C10.7091 11 12.5 9.20914 12.5 7C12.5 4.79086 10.7091 3 8.5 3C6.29086 3 4.5 4.79086 4.5 7C4.5 9.20914 6.29086 11 8.5 11Z"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                        <path
+                          d="M20 8V14"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                        <path
+                          d="M23 11H17"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                      <span>Đăng Ký</span>
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <div className="header__dropdown-user">
+                      <div className="header__dropdown-avatar">
+                        {user?.avatar ? (
+                          <img src={user.avatar} alt={user.name} />
+                        ) : (
+                          <svg
+                            width="24"
+                            height="24"
+                            viewBox="0 0 24 24"
+                            fill="currentColor"
+                          >
+                            <path d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z" />
+                            <path d="M12 14C7.58172 14 4 16.5817 4 19.5V22H20V19.5C20 16.5817 16.4183 14 12 14Z" />
+                          </svg>
+                        )}
+                      </div>
+                      <div className="header__dropdown-info">
+                        <p className="header__dropdown-name">{user?.name}</p>
+                        <p className="header__dropdown-email">{user?.email}</p>
+                      </div>
+                    </div>
+                    <div className="header__dropdown-divider"></div>
+                    <button
+                      className="header__dropdown-item"
+                      onClick={handleProfile}
+                    >
+                      <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                      >
+                        <path
+                          d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                        <path
+                          d="M12 11C14.2091 11 16 9.20914 16 7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7C8 9.20914 9.79086 11 12 11Z"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                      <span>Thông Tin Cá Nhân</span>
+                    </button>
+                    <button
+                      className="header__dropdown-item"
+                      onClick={handleOrders}
+                    >
+                      <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                      >
+                        <path
+                          d="M9 11L12 14L22 4"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                        <path
+                          d="M21 12V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H16"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                      <span>Đơn Hàng</span>
+                    </button>
+                    <button
+                      className="header__dropdown-item header__dropdown-item--logout"
+                      onClick={handleLogout}
+                    >
+                      <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                      >
+                        <path
+                          d="M9 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H9"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                        <path
+                          d="M16 17L21 12L16 7"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                        <path
+                          d="M21 12H9"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                      <span>Đăng Xuất</span>
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+
+          <button
+            className="header__icon-btn header__cart"
+            onClick={handleCartClick}
+          >
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path
+                d="M2.5 2.5H3.5L5.5 13.5H16.5L18.5 6.5H4.5"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <circle cx="7" cy="17" r="1" fill="currentColor" />
+              <circle cx="15" cy="17" r="1" fill="currentColor" />
+            </svg>
+            {cartCount > 0 && (
+              <span className="header__cart-badge">{cartCount}</span>
+            )}
+          </button>
+        </div>
+      </div>
+    </header>
+  );
+};
+
+export default Header;
