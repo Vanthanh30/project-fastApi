@@ -225,30 +225,15 @@
         width: 100%;
         height: 6px;
         border-radius: 3px;
-        background: #e5e5e5;
+        background: linear-gradient(to right, #dc2626 0%, #dc2626 var(--value), #e5e5e5 var(--value), #e5e5e5 100%);
         outline: none;
         -webkit-appearance: none;
         margin-bottom: 15px;
         cursor: pointer;
         transition: all 0.3s ease;
-        position: relative;
 
         &:hover {
             height: 8px;
-        }
-
-        &::-webkit-slider-runnable-track {
-            width: 100%;
-            height: 6px;
-            background: #e5e5e5;
-            border-radius: 3px;
-        }
-
-        &::-moz-range-track {
-            width: 100%;
-            height: 6px;
-            background: #e5e5e5;
-            border-radius: 3px;
         }
 
         &::-webkit-slider-thumb {
@@ -262,7 +247,6 @@
             border: 3px solid white;
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
             transition: all 0.3s ease;
-            margin-top: -6px;
 
             &:hover {
                 transform: scale(1.2);
