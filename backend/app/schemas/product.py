@@ -11,7 +11,7 @@ class ProductCreate(BaseModel):
     description: str = Field(..., min_length=1)
     brand: str = Field(..., min_length=1)
     quantity: int = Field(..., gt=0)
-    status: int = Field(...)
+    status: int = Field(default=1)
     
     @classmethod
     def as_form(
@@ -22,7 +22,7 @@ class ProductCreate(BaseModel):
         description: str = Form(...),
         brand: str = Form(...),
         quantity: int = Form(...),
-        status: int = Form(...)
+        status: int = Form(1)
     ):
         return cls(
             name=name,

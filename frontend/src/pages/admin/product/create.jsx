@@ -19,6 +19,7 @@ const CreateProduct = () => {
     price: "",
     quantity: "",
     category_id: "",
+    status: 1,
     brand: "",
     image: "",
   });
@@ -91,6 +92,7 @@ const CreateProduct = () => {
         price: parseFloat(formData.price),
         quantity: parseInt(formData.quantity),
         category_id: parseInt(formData.category_id),
+        status: parseInt(formData.status),
         brand: formData.brand.trim(),
       };
 
@@ -163,7 +165,6 @@ const CreateProduct = () => {
               onChange={handleChange}
             ></textarea>
           </div>
-
           <div className="create-product-page__form-group">
             <label className="create-product-page__label">Hình ảnh</label>
 
@@ -213,7 +214,6 @@ const CreateProduct = () => {
               </span>
             </div>
           </div>
-
           <div className="create-product-page__form-group">
             <label className="create-product-page__section-title">
               Giá & Số lượng
@@ -248,25 +248,25 @@ const CreateProduct = () => {
               </div>
             </div>
           </div>
-
-          <div className="create-product-page__form-group">
-            <label className="create-product-page__label">Danh mục(*)</label>
-            <select
-              name="category_id"
-              className="create-product-page__select"
-              value={formData.category_id}
-              onChange={handleChange}
-            >
-              <option value="">Chọn danh mục</option>
-              {categories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
+          <div className="create-product-page__row-2 create-product-page__form-group">
+            <div>
+              <label className="create-product-page__label">Danh mục(*)</label>
+              <select
+                name="category_id"
+                className="create-product-page__select"
+                value={formData.category_id}
+                onChange={handleChange}
+              >
+                <option value="">Chọn danh mục</option>
+                {categories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
-
         <div className="create-product-page__bottom-actions">
           <button
             type="button"
