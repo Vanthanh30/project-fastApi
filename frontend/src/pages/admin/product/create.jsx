@@ -19,7 +19,6 @@ const CreateProduct = () => {
     price: "",
     quantity: "",
     category_id: "",
-    status: 1,
     brand: "",
     image: "",
   });
@@ -92,7 +91,6 @@ const CreateProduct = () => {
         price: parseFloat(formData.price),
         quantity: parseInt(formData.quantity),
         category_id: parseInt(formData.category_id),
-        status: parseInt(formData.status),
         brand: formData.brand.trim(),
       };
 
@@ -165,6 +163,7 @@ const CreateProduct = () => {
               onChange={handleChange}
             ></textarea>
           </div>
+
           <div className="create-product-page__form-group">
             <label className="create-product-page__label">Hình ảnh</label>
 
@@ -214,6 +213,7 @@ const CreateProduct = () => {
               </span>
             </div>
           </div>
+
           <div className="create-product-page__form-group">
             <label className="create-product-page__section-title">
               Giá & Số lượng
@@ -248,84 +248,25 @@ const CreateProduct = () => {
               </div>
             </div>
           </div>
-          <div className="create-product-page__row-2 create-product-page__form-group">
-            <div>
-              <label className="create-product-page__label">Danh mục(*)</label>
-              <select
-                name="category_id"
-                className="create-product-page__select"
-                value={formData.category_id}
-                onChange={handleChange}
-              >
-                <option value="">Chọn danh mục</option>
-                {categories.map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="create-product-page__label">Trạng thái</label>
-              <div className="create-product-page__radio-group">
-                <label
-                  className={`create-product-page__radio-label ${formData.status === 1 ? "active" : ""
-                    }`}
-                >
-                  <input
-                    type="radio"
-                    name="status"
-                    value="1"
-                    checked={formData.status === 1}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        status: parseInt(e.target.value),
-                      }))
-                    }
-                  />
-                  Đang bán
-                </label>
-                <label
-                  className={`create-product-page__radio-label ${formData.status === 2 ? "active" : ""
-                    }`}
-                >
-                  <input
-                    type="radio"
-                    name="status"
-                    value="2"
-                    checked={formData.status === 2}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        status: parseInt(e.target.value),
-                      }))
-                    }
-                  />
-                  Sắp hết
-                </label>
-                <label
-                  className={`create-product-page__radio-label ${formData.status === 3 ? "active" : ""
-                    }`}
-                >
-                  <input
-                    type="radio"
-                    name="status"
-                    value="3"
-                    checked={formData.status === 3}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        status: parseInt(e.target.value),
-                      }))
-                    }
-                  />
-                  Hết hàng
-                </label>
-              </div>
-            </div>
+
+          <div className="create-product-page__form-group">
+            <label className="create-product-page__label">Danh mục(*)</label>
+            <select
+              name="category_id"
+              className="create-product-page__select"
+              value={formData.category_id}
+              onChange={handleChange}
+            >
+              <option value="">Chọn danh mục</option>
+              {categories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
+
         <div className="create-product-page__bottom-actions">
           <button
             type="button"
