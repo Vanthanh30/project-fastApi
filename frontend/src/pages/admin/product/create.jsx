@@ -69,7 +69,7 @@ const CreateProduct = () => {
       alert("Vui lòng nhập giá hợp lệ");
       return false;
     }
-    if (!formData.quantity || parseInt(formData.quantity) < 0) {
+    if (!formData.quantity || parseInt(formData.quantity) <= 0) {
       alert("Vui lòng nhập số lượng hợp lệ");
       return false;
     }
@@ -159,7 +159,7 @@ const CreateProduct = () => {
 
           <div className="create-product-page__form-group">
             <label className="create-product-page__label">
-              Mô tả sản phẩm
+              Mô tả sản phẩm(*)
             </label>
             <textarea
               name="description"
