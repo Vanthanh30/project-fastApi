@@ -7,6 +7,8 @@ from app.db.base import get_db
 from app.models.order import Order, OrderStatus
 from app.models.order_item import OrderItem
 from app.middleware.authenticate import admin_required
+from app.models.product import Product
+
 
 router = APIRouter(prefix="/orders", tags=["adminOrders"])
 
@@ -40,22 +42,43 @@ def approve_order(order_id: int, db: Session = Depends(get_db)):
         "status": order.status
 
     }
-@router.put("/{order_id}/cancel_order",dependencies=[Depends(admin_required)])
+@router.put("/{order_id}/cancel_order", dependencies=[Depends(admin_required)])
 def cancel_order(order_id: int, db: Session = Depends(get_db)):
-    order = db.query(Order).filter(Order.id == order_id).first()
+    order = (db.query(Order).filter(Order.id == order_id).first())
+
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
+
     if order.status != OrderStatus.PENDING:
-        raise HTTPException(status_code=400, detail="Không thể duyệt đơn này")
-    order.status = OrderStatus.CANCEL
-    db.commit()
+        raise HTTPException(
+            status_code=400,
+            detail="Chỉ có thể hủy đơn đang chờ xác nhận"
+        )
+
+    try:
+        for item in order.items:
+            product = item.product
+            if not product:
+                raise HTTPException(
+                    status_code=404,
+                    detail=f"Product {item.product_id} not found"
+                )
+
+            product.quantity += item.quantity
+
+        order.status = OrderStatus.CANCEL
+        db.commit()
+
+    except Exception as e:
+        db.rollback()
+        raise e
 
     return {
         "message": "Hủy đơn hàng thành công",
-        "order_id" : order.id,
+        "order_id": order.id,
         "status": order.status
-
     }
+
 
 @router.put("/{order_id}/done_order",dependencies=[Depends(admin_required)])
 def done_order(order_id: int, db: Session = Depends(get_db)):
