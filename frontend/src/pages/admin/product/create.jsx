@@ -61,6 +61,10 @@ const CreateProduct = () => {
       alert("Vui lòng nhập tên sản phẩm");
       return false;
     }
+    if (!formData.description.trim()) {
+      alert("Vui lòng nhập mô tả");
+      return false;
+    }
     if (!formData.price || parseFloat(formData.price) <= 0) {
       alert("Vui lòng nhập giá hợp lệ");
       return false;
