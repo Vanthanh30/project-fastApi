@@ -18,7 +18,7 @@ def analyze_message(message: str) -> dict:
         }
 
     CATEGORY_KEYWORDS = [
-        "son", "sữa rửa mặt", "toner", "serum", "kem dưỡng", "chống nắng"
+        "son", "sữa rửa mặt", "toner", "serum", "kem dưỡng", "chống nắng","dầu gội"
     ]
     for cat in CATEGORY_KEYWORDS:
         if cat in msg:
